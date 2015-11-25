@@ -4,7 +4,18 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "build-react": "browserify . -o dist/trillion.js",
+    "build": "npm run build-react",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "browserify": {
+    "transform": [
+      ["babelify", {"presets": ["es2015", "react"]}],
+      ["browserify-shim"]
+    ]
+  },
+  "browserify-shim": {
+    "react": "global:React"
   },
   "repository": {
     "type": "git",
@@ -23,10 +34,14 @@
   },
   "homepage": "https://github.com/imsky/trillion#readme",
   "dependencies": {
-    "babel-preset-es2015": "^6.1.18",
-    "babel-preset-react": "^6.1.18",
-    "babelify": "^7.2.0",
-    "react": "^0.14.3",
-    "react-dom": "^0.14.3"
+    "babel-preset-es2015": "^6",
+    "babel-preset-react": "^6",
+    "babelify": "^7",
+    "browserify-shim": "^3.8.11",
+    "react": "^0.14",
+    "react-dom": "^0.14"
+  },
+  "devDependencies": {
+    "browserify": "^12.0.1"
   }
 }
