@@ -1,0 +1,32 @@
+{
+  "name": "trillion",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/imsky/trillion.git"
+  },
+  "keywords": [
+    "table",
+    "million",
+    "rows",
+    "react"
+  ],
+  "author": "Ivan Malopinsky",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/imsky/trillion/issues"
+  },
+  "homepage": "https://github.com/imsky/trillion#readme",
+  "dependencies": {
+    "babel-preset-es2015": "^6.1.18",
+    "babel-preset-react": "^6.1.18",
+    "babelify": "^7.2.0",
+    "react": "^0.14.3",
+    "react-dom": "^0.14.3"
+  }
+}
