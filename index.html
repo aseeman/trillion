@@ -9,12 +9,16 @@
 <main></main>
 <script src="dist/trillion.js"></script>
 <script>
-var data = [
-  {name: 'John Smith', age: '45'},
-  {name: 'Jane Smith', age: '42'},
-  {name: 'Tom Smith', age: '19'},
-  {name: 'Anna Smith', age: '23'}
-];
+var carMakes = ['Mercedes-Benz', 'BMW', 'Ford', 'Chevrolet', 'Toyota', 'Nissan', 'Lamborghini', 'Ferrari'];
+var data = [];
+
+for (var i = 0; i < 5000; i++ ) {
+  data.push({
+    'name': carMakes[Math.floor(carMakes.length * Math.random())] + ' ' + (100 + Math.floor(Math.random() * 800)),
+    'price': Number(20000 + Math.random() * 100000).toFixed(2),
+    'year': 1970 + Math.floor(Math.random() * 45)
+  });
+}
 
 var indices = [
   {
@@ -23,11 +27,18 @@ var indices = [
     'type': String
   },
   {
-    'label': 'Age',
-    'field': 'age',
+    'label': 'Price',
+    'field': 'price',
     'type': Number
-  }
+  },
+  {
+    'label': 'Year',
+    'field': 'year',
+    'type': Number
+  },
 ];
+
+
 ReactDOM.render(
   React.createElement(Trillion, {
     'data': data,
