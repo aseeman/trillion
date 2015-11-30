@@ -9,8 +9,30 @@
 <main></main>
 <script src="dist/trillion.js"></script>
 <script>
+var data = [
+  {name: 'John Smith', age: '45'},
+  {name: 'Jane Smith', age: '42'},
+  {name: 'Tom Smith', age: '19'},
+  {name: 'Anna Smith', age: '23'}
+];
+
+var indices = [
+  {
+    'label': 'Name',
+    'field': 'name',
+    'type': String
+  },
+  {
+    'label': 'Age',
+    'field': 'age',
+    'type': Number
+  }
+];
 ReactDOM.render(
-  React.createElement(Trillion, {}),
+  React.createElement(Trillion, {
+    'data': data,
+    'indices': indices
+  }),
   document.querySelector('main'));
 </script>
 </body>
