@@ -14,8 +14,8 @@ export default function template () {
         {
           this.state.rows.map(function (row, i) {
             return <tr key={i}>{
-              row.map(function (field, j) {
-                return <td key={j}>{field}</td>;
+              indices.map(function (index, j) {
+                return <td key={index.field}>{String(row[index.field].displayValue)}</td>;
               })
             }</tr>;
           })

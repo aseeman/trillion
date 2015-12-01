@@ -1,44 +1,64 @@
 import React from 'react';
+import Immutable from 'immutable';
 
 import template from './templates/table-react.jsx';
+
+function createList(data, indices) {
+  const definedFields = indices.map(function (index) {
+    return index.field;
+  });
+
+  let filteredData = data.map(function (item) {
+    let ret = {};
+
+    for(let field of definedFields) {
+      ret[field] = {
+        'displayValue': item[field],
+        'rawValue': item[field]
+      };
+    }
+
+    return ret;
+  });
+
+  return Immutable.List(filteredData);
+}
 
 const Trillion = React.createClass({
   //todo: validate props
   'render': template,
   'getInitialState': function () {
     return {
+      'page': 1,
       'rows': []
     };
   },
   'getDefaultProps': function () {
-    return {};
+    return {
+      'pageSize': 10
+    };
   },
   'componentWillMount': function () {
-    const rows = [];
-    const data = this.props.data;
-    const indices = this.props.indices;
-
-    if (data &&
-        Array.isArray(data) &&
-        indices &&
-        Array.isArray(indices)) {
-
-      for(let i = 0; i < data.length; i++) {
-        let row = [];
-        for(let j = 0; j < indices.length; j++) {
-          let index = indices[j];
-          //todo: allow changing default type
-          let type = index.type || String;
-          row.push(type(data[i][index.field]));
-        }
-        rows.push(row);
-      }
-    } else {
-      throw Error('Invalid indices or data');
-    }
+    let list = createList(this.props.data, this.props.indices);
 
     this.setState({
-      'rows': rows
+      'list': list
+    }, () => {
+      this.updateRows();
+    });
+  },
+  'updateRows': function () {
+    // filter
+    // sort
+    // reverse
+    // paginate
+    this.getPage(this.state.page);
+  },
+  'getPage': function (page) {
+    let rows = this.state.list.slice(((this.state.page - 1) * this.props.pageSize), (this.state.page * this.props.pageSize));
+
+    this.setState({
+      'rows': rows.toArray()
     });
   }
 });

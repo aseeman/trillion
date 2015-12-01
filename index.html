@@ -9,14 +9,24 @@
 <main></main>
 <script src="dist/trillion.js"></script>
 <script>
+
+function randomDate() {
+  var year = 31557600000;
+  return new Date(Math.floor((Math.random() * 31557600000) + Math.floor(Math.random() * 45 * year)));
+}
+
 var carMakes = ['Mercedes-Benz', 'BMW', 'Ford', 'Chevrolet', 'Toyota', 'Nissan', 'Lamborghini', 'Ferrari'];
 var data = [];
 
+var price = 20000;
+
 for (var i = 0; i < 5000; i++ ) {
+  price += (Math.random() * 1000);
+  var date = randomDate();
   data.push({
     'name': carMakes[Math.floor(carMakes.length * Math.random())] + ' ' + (100 + Math.floor(Math.random() * 800)),
-    'price': Number(20000 + Math.random() * 100000).toFixed(2),
-    'year': 1970 + Math.floor(Math.random() * 45)
+    'price': Number(price).toFixed(2),
+    'release': date
   });
 }
 
@@ -32,9 +42,9 @@ var indices = [
     'type': Number
   },
   {
-    'label': 'Year',
-    'field': 'year',
-    'type': Number
+    'label': 'Release date',
+    'field': 'release',
+    'type': Date
   },
 ];
 
@@ -42,7 +52,8 @@ var indices = [
 ReactDOM.render(
   React.createElement(Trillion, {
     'data': data,
-    'indices': indices
+    'indices': indices,
+    'pageSize': 25
   }),
   document.querySelector('main'));
 </script>
