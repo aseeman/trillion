@@ -7,6 +7,7 @@
     "build-commonjs": "babel --presets es2015 src --out-dir lib",
     "build-react": "browserify -s Trillion . -o dist/trillion.js",
     "build": "npm run build-react",
+    "minify": "uglifyjs dist/trillion.js -o dist/trillion.min.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "browserify": {
@@ -50,9 +51,11 @@
   "homepage": "https://github.com/imsky/trillion#readme",
   "dependencies": {
     "babel-plugin-add-module-exports": "^0.1.1",
-    "immutable": "^3.7.5",
+    "debug": "^2.2.0",
     "react": "^0.14",
-    "react-dom": "^0.14"
+    "react-dom": "^0.14",
+    "transducers.js": "^0.3.2",
+    "uglify-js": "^2.6.1"
   },
   "devDependencies": {
     "babel-cli": "^6",

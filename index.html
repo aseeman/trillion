@@ -6,7 +6,7 @@
 <script src="http://cdnjs.cloudflare.com/ajax/libs/react/0.14.3/react-dom.js"></script>
 </head>
 <body>
-<main></main>
+<main>Loading&hellip;</main>
 <script src="dist/trillion.js"></script>
 <script>
 
@@ -20,7 +20,7 @@ var data = [];
 
 var price = 20000;
 
-for (var i = 0; i < 5000; i++ ) {
+for (var i = 0; i < 500000; i++ ) {
   price += (Math.random() * 1000);
   var date = randomDate();
   data.push({
@@ -47,7 +47,6 @@ var indices = [
     'type': Date
   },
 ];
-
 
 ReactDOM.render(
   React.createElement(Trillion, {
