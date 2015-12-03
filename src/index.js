@@ -39,7 +39,7 @@ export default React.createClass({
     });
 
     this.setState({
-      'brows': rows
+      'rows': rows
     });
   }
 });
