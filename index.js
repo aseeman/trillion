@@ -1,3 +1,3 @@
-import Trillion from './src/trillion';
+import Trillion from './src';
 
 export default Trillion;
