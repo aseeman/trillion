@@ -1,7 +1,5 @@
 import React from 'react';
 
-import { Trillion, Filter } from './trillion';
-
 import template from './templates/table-react.jsx';
 
 export default React.createClass({
@@ -21,11 +19,11 @@ export default React.createClass({
   'componentWillMount': function () {
     const data = this.props.data;
     const indices = this.props.indices;
+    const Trillion = this.props.Trillion;
 
     let trillion = Trillion(data, indices);
-    let benzFilter = new Filter('match', 'name', 'Benz');
-    trillion.addFilter(benzFilter);
 
+    return;
     trillion.compute();
 
     let rows = trillion.rows.map(row => {
@@ -43,3 +41,5 @@ export default React.createClass({
     });
   }
 });
+
+module.exports = exports.default;

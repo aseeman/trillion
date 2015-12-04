@@ -8,6 +8,7 @@
 <body>
 <main>Loading&hellip;</main>
 <script src="dist/trillion.js"></script>
+<script src="dist/trillion-react.js"></script>
 <script>
 
 function randomDate() {
@@ -20,7 +21,7 @@ var data = [];
 
 var price = 20000;
 
-for (var i = 0; i < 1000000; i++ ) {
+for (var i = 0; i < 1000; i++ ) {
   price += (Math.random() * 1000);
   var date = randomDate();
   data.push({
@@ -49,10 +50,11 @@ var indices = [
 ];
 
 ReactDOM.render(
-  React.createElement(Trillion, {
+  React.createElement(TrillionReact, {
     'data': data,
     'indices': indices,
-    'pageSize': 25
+    'pageSize': 25,
+    'Trillion': Trillion
   }),
   document.querySelector('main'));
 </script>

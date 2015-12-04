@@ -1,9 +1,11 @@
 import t from 'transducers.js';
 import Debug from 'debug';
 
+import Filter from './filter';
+
 const debug = Debug('trillion');
 
-export function Trillion (data, indices) {
+const Trillion = function (data, indices) {
   if (!(this instanceof Trillion)) {
     return new Trillion(data, indices);
   }
@@ -67,19 +69,6 @@ Trillion.prototype.compute = function () {
   // paginate
 };
 
-export function Filter (type, field, value) {
-  const name = `${type}-${field}-${value}`;
-  let fn = function () {
-    return true;
-  };
+export default Trillion;
 
-  if (type === 'match') {
-    fn = function (data) {
-      return data[field].raw.indexOf(value) !== -1;
-    };
-  }
-
-  fn._name = name;
-
-  return fn;
-};
+module.exports = exports.default;
