@@ -21,9 +21,11 @@ export default React.createClass({
     const indices = this.props.indices;
     const Trillion = this.props.Trillion;
 
-    let trillion = Trillion(data, indices);
+    if (!Trillion.rows) {
+      throw Error('No rows computed');
+    }
 
-    let rows = trillion.rows.map(row => {
+    let rows = Trillion.rows.map(row => {
       let ret = {};
 
       Object.keys(row).forEach(key => {

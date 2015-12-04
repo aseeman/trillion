@@ -1,9 +1,9 @@
 import t from 'transducers.js';
-import Debug from 'debug';
+import debug from 'debug';
 
 import Filter from './filter';
 
-const debug = Debug('trillion');
+const log = debug('trillion');
 
 const Trillion = function (data, indices) {
   if (!(this instanceof Trillion)) {
@@ -14,7 +14,7 @@ const Trillion = function (data, indices) {
 };
 
 Trillion.prototype.initialize = function (data) {
-  debug('start initialize');
+  log('start initialize');
   this.filters = {};
 
   const definedFields = indices.map(index => {
@@ -37,7 +37,7 @@ Trillion.prototype.initialize = function (data) {
     filteredData.push(ret);
   }
 
-  debug('finish initialize');
+  log('finish initialize');
   this.data = filteredData;
   this.compute();
 };
@@ -49,7 +49,7 @@ Trillion.prototype.addFilter = function (filter) {
 };
 
 Trillion.prototype.compute = function () {
-  debug('start compute')
+  log('start compute')
   let stack = [];
 
   const filters = this.filters;
@@ -63,13 +63,17 @@ Trillion.prototype.compute = function () {
   const transform = t.compose.apply(null, stack);
   const sequence = t.seq(this.data, transform);
 
-  this.rows = sequence;
-  debug('finish compute')
+  log('finish compute')
   // sort
   // reverse
   // paginate
+
+  this.rows = sequence;
+  return this.rows;
 };
 
 export default Trillion;
+
+Trillion.Filter = Filter;
 
 module.exports = exports.default;

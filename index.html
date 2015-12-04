@@ -49,12 +49,18 @@ var indices = [
   },
 ];
 
+var trillion = new Trillion(data, indices);
+
+var filter = new Trillion.Filter('match', 'name', 'BMW');
+trillion.addFilter(filter);
+trillion.compute();
+
 ReactDOM.render(
   React.createElement(TrillionReact, {
     'data': data,
     'indices': indices,
     'pageSize': 25,
-    'Trillion': Trillion
+    'Trillion': trillion
   }),
   document.querySelector('main'));
 </script>
