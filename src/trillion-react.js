@@ -23,9 +23,6 @@ export default React.createClass({
 
     let trillion = Trillion(data, indices);
 
-    return;
-    trillion.compute();
-
     let rows = trillion.rows.map(row => {
       let ret = {};
 

@@ -37,8 +37,9 @@ Trillion.prototype.initialize = function (data) {
     filteredData.push(ret);
   }
 
+  debug('finish initialize');
   this.data = filteredData;
-  debug('finish initialize')
+  this.compute();
 };
 
 Trillion.prototype.addFilter = function (filter) {
