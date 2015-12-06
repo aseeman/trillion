@@ -36,6 +36,7 @@ Trillion.prototype.initialize = function (input, headers, options) {
   this.filters = {};
   this.options = {};
   this.listeners = [];
+  this.sortConfig = null;
   this.currentPage = 1;
 
   this.options.pageSize = clamp(options.pageSize, 1, 1000) || 100;
@@ -91,18 +92,60 @@ Trillion.prototype.compute = function () {
     stack.push(t.filter(filter));
   }
 
-  // fuzzy search
-
   const transform = t.compose.apply(null, stack);
   const rows = t.seq(this.data, transform);
 
-  // sort
-  // group
+  // todo: group
+
+  this.sort();
 
   log('compute end');
 
   this.rows = rows;
 
+  this.renderPage();
+};
+
+//todo: probably should be internal
+Trillion.prototype.sort = function () {
+  if (!this.sortConfig) {
+    return;
+  }
+
+  let field = this.sortConfig.header.field;
+  let type = this.sortConfig.header.type;
+  let ascending = this.sortConfig.ascending;
+
+  if (type === String) {
+    this.rows = this.rows.sort(function (a, b) {
+      let x = ascending ? a : b;
+      let y = ascending ? b : a;
+      return x[field].raw.localeCompare(y[field].raw);
+    });
+  } else {
+    this.rows = this.rows.sort(function (a, b) {
+      return a[field].raw - b[field].raw;
+    });
+  }
+};
+
+Trillion.prototype.sortByHeader = function (headerIndex) {
+  if (headerIndex >= this.headers.length) {
+    throw Error('Header index out of bounds');
+  }
+
+  let header = this.headers[headerIndex];
+
+  if (this.sortConfig && header === this.sortConfig.header) {
+    this.sortConfig.ascending = !this.sortConfig.ascending;
+  } else{
+    this.sortConfig = {
+      'header': header,
+      'ascending': false
+    };
+  }
+
+  this.sort();
   this.renderPage();
 };
 

@@ -21,6 +21,12 @@ export default React.createClass({
     Trillion.getNextPage();
   },
 
+  //todo: this should be communicating header name, not field
+  'sortByHeader': function (headerIndex) {
+    const Trillion = this.props.Trillion;
+    Trillion.sortByHeader(headerIndex);
+  },
+
   'updateFromTrillion': function (rows, indices) {
     this.setState({
       'rows': rows,
