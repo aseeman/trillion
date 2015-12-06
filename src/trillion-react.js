@@ -7,20 +7,27 @@ export default React.createClass({
   'render': template,
   'getInitialState': function () {
     return {
+      'indices': [],
       'rows': []
     };
   },
+
+  //todo: move into mixin
+  'updateFromTrillion': function (rows, indices) {
+    this.setState({
+      'rows': rows,
+      'indices': indices
+    });
+  },
+
   'componentWillMount': function () {
     const Trillion = this.props.Trillion;
+    Trillion.registerListener(this.updateFromTrillion);
+  },
 
-    if (!Trillion.rows) {
-      throw Error('No rows computed');
-    }
-
-    this.setState({
-      'rows': Trillion.rows,
-      'indices': Trillion.indices
-    });
+  'componentWillUnmount': function () {
+    const Trillion = this.props.Trillion;
+    Trillion.unregisterListener(this.updateFromTrillion);
   }
 });
 

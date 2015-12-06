@@ -20,8 +20,10 @@ const Trillion = function (data, indices, options) {
 Trillion.prototype.initialize = function (input, indices, options) {
   this.filters = {};
   this.options = {};
+  this.listeners = [];
 
   this.options.pageSize = clamp(options.pageSize, 1, 1000) || 100;
+  this.options.lazy = !!options.lazy;
 
   const fields = indices.map(index => {
     return index.field;
@@ -55,6 +57,10 @@ Trillion.prototype.addFilter = function (filter) {
 };
 
 Trillion.prototype.compute = function () {
+  if (this.options.lazy && !this.listeners.length) {
+    return;
+  }
+
   let stack = [];
 
   const filters = this.filters;
@@ -70,14 +76,62 @@ Trillion.prototype.compute = function () {
   stack.push(t.take(this.options.pageSize));
 
   const transform = t.compose.apply(null, stack);
-  const sequence = t.seq(this.data, transform);
+  const rows = t.seq(this.data, transform);
 
   // sort
-  // reverse
+  // group
   // paginate
 
-  this.rows = sequence;
-  return this.rows;
+  this.rows = rows;
+  this.notifyListeners(rows, this.indices);
+};
+
+Trillion.prototype.notifyListeners = function (rows, indices) {
+  for(let i = 0, l = this.listeners.length; i < l; i++) {
+    if (typeof this.listeners[i] === 'function') {
+      this.listeners[i](rows, indices);
+    }
+  }
+};
+
+Trillion.prototype.registerListener = function (listener) {
+  let newListener = true;
+
+  if (typeof listener !== 'function') {
+    throw Error('Listener is not a function');
+  }
+
+  for(let i = 0, l = this.listeners.length; i < l; i++) {
+    if (listener === this.listeners[i]) {
+      newListener = false;
+    }
+  }
+
+  if (newListener) {
+    this.listeners.push(listener);
+
+    if (this.listeners.length === 1 && this.options.lazy) {
+      this.compute();
+    } else if (this.listeners.length > 1) {
+      listener(this.rows, this.indices);
+    }
+  }
+};
+
+Trillion.prototype.unregisterListener = function (listener) {
+  let listeners = [];
+
+  if (typeof listener !== 'function') {
+    throw Error('Listener is not a function');
+  }
+
+  for (let i = 0, l = this.listeners.length; i < l; i++) {
+    if (listener !== this.listeners[i]) {
+      listeners.push(this.listeners[i]);
+    }
+  }
+
+  this.listeners = listeners;
 };
 
 export default Trillion;

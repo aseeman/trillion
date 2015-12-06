@@ -1,10 +1,13 @@
 export default function template () {
+  let rows = this.state.rows || [];
+  let indices = this.state.indices || [];
+
   return (
     <table>
       <thead>
         <tr>
           {
-            this.state.indices.map(function (index, i) {
+            indices.map(function (index, i) {
               return <th key={i}>{index.label}</th>;
             })
           }
@@ -12,9 +15,9 @@ export default function template () {
       </thead>
       <tbody>
         {
-          this.state.rows.map(function (row, i) {
+          rows.map(function (row, i) {
             return <tr key={i}>{
-              this.state.indices.map(function (index, j) {
+              indices.map(function (index, j) {
                 return <td key={index.field}>{String(row[index.field].display)}</td>;
               })
             }</tr>;

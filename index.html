@@ -59,20 +59,22 @@ return {
 };
 }
 
-
 var test = testTable();
 
 var trillion = Trillion(test.data, test.indices, {
+  'lazy': true,
   'pageSize': 25
 });
 
 trillion.addFilter(test.filter);
+trillion.compute();
 
 ReactDOM.render(
   React.createElement(TrillionReact, {
     'Trillion': trillion
   }),
   document.querySelector('main'));
+
 </script>
 </body>
 </html>
