@@ -16,7 +16,8 @@ function randomDate() {
   return new Date(Math.floor((Math.random() * 31557600000) + Math.floor(Math.random() * 45 * year)));
 }
 
-var carMakes = ['Mercedes-Benz', 'BMW', 'Ford', 'Chevrolet', 'Toyota', 'Nissan', 'Lamborghini', 'Ferrari'];
+function testTable () {
+  var carMakes = ['Mercedes-Benz', 'BMW', 'Ford', 'Chevrolet', 'Toyota', 'Nissan', 'Lamborghini', 'Ferrari'];
 var data = [];
 
 var price = 20000;
@@ -49,17 +50,26 @@ var indices = [
   },
 ];
 
-var trillion = new Trillion(data, indices);
-
 var filter = new Trillion.Filter('match', 'name', 'BMW');
-trillion.addFilter(filter);
-trillion.compute();
+
+return {
+  'data': data,
+  'indices': indices,
+  'filter': filter
+};
+}
+
+
+var test = testTable();
+
+var trillion = Trillion(test.data, test.indices, {
+  'pageSize': 25
+});
+
+trillion.addFilter(test.filter);
 
 ReactDOM.render(
   React.createElement(TrillionReact, {
-    'data': data,
-    'indices': indices,
-    'pageSize': 25,
     'Trillion': trillion
   }),
   document.querySelector('main'));

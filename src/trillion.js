@@ -5,40 +5,46 @@ import Filter from './filter';
 
 const log = debug('trillion');
 
-const Trillion = function (data, indices) {
+function clamp (value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
+
+const Trillion = function (data, indices, options) {
   if (!(this instanceof Trillion)) {
-    return new Trillion(data, indices);
+    return new Trillion(data, indices, options);
   }
 
-  this.initialize(data, indices);
+  this.initialize(data, indices, options);
 };
 
-Trillion.prototype.initialize = function (data) {
-  log('start initialize');
+Trillion.prototype.initialize = function (input, indices, options) {
   this.filters = {};
+  this.options = {};
 
-  const definedFields = indices.map(index => {
+  this.options.pageSize = clamp(options.pageSize, 1, 1000) || 100;
+
+  const fields = indices.map(index => {
     return index.field;
   });
 
-  const filteredData = [];
+  const output = [];
 
-  for (let i = 0, l = data.length; i < l; i++) {
+  for (let i = 0, l = input.length; i < l; i++) {
     let ret = {};
-    let item = data[i];
+    let item = input[i];
 
-    for(let field of definedFields) {
+    for(let field of fields) {
       ret[field] = {
         'display': item[field],
         'raw': item[field]
       };
     }
 
-    filteredData.push(ret);
+    output.push(ret);
   }
 
-  log('finish initialize');
-  this.data = filteredData;
+  this.data = output;
+  this.indices = indices;
   this.compute();
 };
 
@@ -49,7 +55,6 @@ Trillion.prototype.addFilter = function (filter) {
 };
 
 Trillion.prototype.compute = function () {
-  log('start compute')
   let stack = [];
 
   const filters = this.filters;
@@ -60,10 +65,13 @@ Trillion.prototype.compute = function () {
     stack.push(t.filter(filter));
   }
 
+  // fuzzy search
+
+  stack.push(t.take(this.options.pageSize));
+
   const transform = t.compose.apply(null, stack);
   const sequence = t.seq(this.data, transform);
 
-  log('finish compute')
   // sort
   // reverse
   // paginate
