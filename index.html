@@ -64,7 +64,6 @@ var trillion = Trillion(test.data, test.indices, {
 });
 
 trillion.addFilter(new Trillion.Filter('match', 'name', 'BMW'));
-trillion.addFilter(new Trillion.Filter('match', 'name', '745'));
 
 ReactDOM.render(
   React.createElement(TrillionReact, {

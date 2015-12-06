@@ -2,7 +2,7 @@
   "name": "trillion",
   "version": "0.0.3",
   "description": "",
-  "main": "index.js",
+  "main": "dist/trillion.js",
   "scripts": {
     "build": "npm run build-core && npm run build-react",
     "build-core": "webpack --config webpack.config-core.js",

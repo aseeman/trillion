@@ -8,8 +8,8 @@ export default function template () {
       <thead>
         <tr>
           {
-            indices.map(function (index, i) {
-              return <th key={i}>{index.label}</th>;
+            indices.map((index, i) => {
+              return <th key={i} onClick={this.sortByHeader.bind(this, i)}>{index.label}</th>;
             })
           }
         </tr>
