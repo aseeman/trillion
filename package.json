@@ -1,8 +1,8 @@
 {
   "name": "trillion",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/trillion.js",
   "scripts": {
     "build": "npm run build-core && npm run build-react",
     "build-core": "webpack --config webpack.config-core.js",
@@ -18,7 +18,6 @@
     "rows",
     "react"
   ],
-  "main": "dist/trillion.js",
   "author": "Ivan Malopinsky",
   "license": "MIT",
   "bugs": {
