@@ -3,6 +3,7 @@ export default function template () {
   let indices = this.state.indices || [];
 
   return (
+    <div>
     <table>
       <thead>
         <tr>
@@ -25,5 +26,7 @@ export default function template () {
         }
       </tbody>
     </table>
+    <div><a href="#" onClick={this.prevPage}>Prev</a> <a href="#" onClick={this.nextPage}>Next</a></div>
+    </div>
   );
 }

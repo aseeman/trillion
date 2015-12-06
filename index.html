@@ -22,7 +22,7 @@ var data = [];
 
 var price = 20000;
 
-for (var i = 0; i < 1000; i++ ) {
+for (var i = 0; i < 250000; i++ ) {
   price += (Math.random() * 1000);
   var date = randomDate();
   data.push({
@@ -32,7 +32,7 @@ for (var i = 0; i < 1000; i++ ) {
   });
 }
 
-var indices = [
+var headers = [
   {
     'label': 'Name',
     'field': 'name',
@@ -50,12 +50,9 @@ var indices = [
   },
 ];
 
-var filter = new Trillion.Filter('match', 'name', 'BMW');
-
 return {
   'data': data,
-  'indices': indices,
-  'filter': filter
+  'indices': headers
 };
 }
 
@@ -66,14 +63,18 @@ var trillion = Trillion(test.data, test.indices, {
   'pageSize': 25
 });
 
-trillion.addFilter(test.filter);
-trillion.compute();
+trillion.addFilter(new Trillion.Filter('match', 'name', 'BMW'));
+trillion.addFilter(new Trillion.Filter('match', 'name', '745'));
 
 ReactDOM.render(
   React.createElement(TrillionReact, {
     'Trillion': trillion
   }),
   document.querySelector('main'));
+
+for(var i = 0; i < 5; i++) {
+  trillion.compute();
+}
 
 </script>
 </body>

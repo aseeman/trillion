@@ -3,7 +3,6 @@ import React from 'react';
 import template from './templates/table-react.jsx';
 
 export default React.createClass({
-  //todo: validate props
   'render': template,
   'getInitialState': function () {
     return {
@@ -12,7 +11,16 @@ export default React.createClass({
     };
   },
 
-  //todo: move into mixin
+  'prevPage': function () {
+    const Trillion = this.props.Trillion;
+    Trillion.getPreviousPage();
+  },
+
+  'nextPage': function () {
+    const Trillion = this.props.Trillion;
+    Trillion.getNextPage();
+  },
+
   'updateFromTrillion': function (rows, indices) {
     this.setState({
       'rows': rows,

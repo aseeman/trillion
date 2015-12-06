@@ -9,23 +9,39 @@ function clamp (value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
 
-const Trillion = function (data, indices, options) {
-  if (!(this instanceof Trillion)) {
-    return new Trillion(data, indices, options);
+function paginate (trillion) {
+  let startIndex = (trillion.currentPage - 1) * trillion.options.pageSize;
+  let endIndex = Math.min(startIndex + trillion.options.pageSize, trillion.rows.length);
+  let view = [];
+  let rows = trillion.rows;
+
+  for(let i = startIndex; i < endIndex; i++) {
+    view.push(rows[i]);
   }
 
-  this.initialize(data, indices, options);
+  trillion.pageCount = Math.ceil(rows.length / trillion.options.pageSize);
+
+  return view;
+}
+
+const Trillion = function (data, headers, options) {
+  if (!(this instanceof Trillion)) {
+    return new Trillion(data, headers, options);
+  }
+
+  this.initialize(data, headers, options);
 };
 
-Trillion.prototype.initialize = function (input, indices, options) {
+Trillion.prototype.initialize = function (input, headers, options) {
   this.filters = {};
   this.options = {};
   this.listeners = [];
+  this.currentPage = 1;
 
   this.options.pageSize = clamp(options.pageSize, 1, 1000) || 100;
   this.options.lazy = !!options.lazy;
 
-  const fields = indices.map(index => {
+  const fields = headers.map(index => {
     return index.field;
   });
 
@@ -46,7 +62,7 @@ Trillion.prototype.initialize = function (input, indices, options) {
   }
 
   this.data = output;
-  this.indices = indices;
+  this.headers = headers;
   this.compute();
 };
 
@@ -59,7 +75,11 @@ Trillion.prototype.addFilter = function (filter) {
 Trillion.prototype.compute = function () {
   if (this.options.lazy && !this.listeners.length) {
     return;
+  } else if (!this.data || !this.data.length) {
+    return;
   }
+
+  log('compute start');
 
   let stack = [];
 
@@ -73,23 +93,50 @@ Trillion.prototype.compute = function () {
 
   // fuzzy search
 
-  stack.push(t.take(this.options.pageSize));
-
   const transform = t.compose.apply(null, stack);
   const rows = t.seq(this.data, transform);
 
   // sort
   // group
-  // paginate
+
+  log('compute end');
 
   this.rows = rows;
-  this.notifyListeners(rows, this.indices);
+
+  this.renderPage();
 };
 
-Trillion.prototype.notifyListeners = function (rows, indices) {
+Trillion.prototype.getNextPage = function () {
+  let currentPage = this.currentPage;
+
+  if (currentPage + 1 <= this.pageCount) {
+    this.currentPage = currentPage + 1;
+  }
+
+  this.renderPage();
+};
+
+Trillion.prototype.getPreviousPage = function () {
+  let currentPage = this.currentPage;
+
+  if (currentPage - 1 > 0) {
+    this.currentPage = currentPage - 1;
+  }
+
+  this.renderPage();
+};
+
+Trillion.prototype.renderPage = function () {
+  const view = paginate(this);
+  const headers = this.headers;
+
+  this.notifyListeners(view, headers);
+};
+
+Trillion.prototype.notifyListeners = function (rows, headers) {
   for(let i = 0, l = this.listeners.length; i < l; i++) {
     if (typeof this.listeners[i] === 'function') {
-      this.listeners[i](rows, indices);
+      this.listeners[i](rows, headers);
     }
   }
 };
@@ -113,7 +160,7 @@ Trillion.prototype.registerListener = function (listener) {
     if (this.listeners.length === 1 && this.options.lazy) {
       this.compute();
     } else if (this.listeners.length > 1) {
-      listener(this.rows, this.indices);
+      listener(this.rows, this.headers);
     }
   }
 };
