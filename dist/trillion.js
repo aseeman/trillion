@@ -85,21 +85,45 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+	//https://gist.github.com/jed/982883
+	/*
+
+	todo:
+	invisible indices
+	index types
+	money index type
+	number sorting
+	pagination UI
+	filter UI
+	sorting UI
+	search UI
+	fuzzy search
+	possible crossfilter integration
+	possible immutable.js integration
+	tests
+	readme
+
+	*/
+
+	function uuid(a) {
+	  return a ? (a ^ Math.random() * 16 >> a / 4).toString(16) : ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, uuid);
+	}
+
 	function clamp(value, min, max) {
 	  return Math.min(Math.max(value, min), max);
 	}
 
-	function paginate(trillion) {
-	  var startIndex = (trillion.currentPage - 1) * trillion.options.pageSize;
-	  var endIndex = Math.min(startIndex + trillion.options.pageSize, trillion.rows.length);
+	function paginate() {
+	  var startIndex = (this.currentPage - 1) * this.options.pageSize;
+	  var endIndex = Math.min(startIndex + this.options.pageSize, this.rows.length);
 	  var view = [];
-	  var rows = trillion.rows;
+	  var rows = this.rows;
 
 	  for (var i = startIndex; i < endIndex; i++) {
 	    view.push(rows[i]);
 	  }
 
-	  trillion.pageCount = Math.ceil(rows.length / trillion.options.pageSize);
+	  this.pageCount = Math.ceil(rows.length / this.options.pageSize);
 
 	  return view;
 	}
@@ -114,17 +138,28 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	(0, _objectAssign2.default)(Trillion.prototype, _filters2.default);
 
-	Trillion.prototype.initialize = function (input, headers, options) {
+	Trillion.prototype.initialize = function (input, indices, options) {
 	  this.filters = {};
 	  this.options = {};
 	  this.listeners = [];
 	  this.sortConfig = null;
 	  this.currentPage = 1;
+	  this.pageCount = 0;
 
 	  this.options.pageSize = clamp(options.pageSize, 1, 1000) || 100;
 	  this.options.lazy = !!options.lazy;
 
-	  var fields = headers.map(function (index) {
+	  var tableIndices = indices.map(function (index) {
+	    return {
+	      'visible': typeof index.visible === 'undefined' ? true : index.visible,
+	      'field': index.field,
+	      'label': index.label,
+	      'type': index.type,
+	      'id': uuid()
+	    };
+	  });
+
+	  var fields = indices.map(function (index) {
 	    return index.field;
 	  });
 
@@ -139,12 +174,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var _iteratorError = undefined;
 
 	    try {
-	      for (var _iterator = fields[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	        var field = _step.value;
+	      for (var _iterator = tableIndices[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	        var index = _step.value;
 
-	        ret[field] = {
-	          'display': item[field],
-	          'raw': item[field]
+	        ret[index.field] = {
+	          'display': item[index.field],
+	          'raw': item[index.field]
 	        };
 	      }
 	    } catch (err) {
@@ -166,7 +201,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 
 	  this.data = output;
-	  this.headers = headers;
+	  this.headers = tableIndices;
 	  this.compute();
 	};
 
@@ -189,8 +224,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  var transform = _transducers2.default.compose.apply(null, stack);
 	  var rows = _transducers2.default.seq(this.data, transform);
-
-	  // todo: group
 
 	  this.sort();
 
@@ -242,6 +275,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	  this.renderPage();
 	};
 
+	Trillion.prototype.getSortInfo = function () {
+	  return {
+	    'sortIndex': this.sortConfig.header.name,
+	    'sortAsc': this.sortConfig.ascending
+	  };
+	};
+
+	Trillion.prototype.getPageInfo = function () {
+	  return {
+	    'currentPage': this.currentPage,
+	    'totalPages': this.pageCount
+	  };
+	};
+
 	Trillion.prototype.getNextPage = function () {
 	  var currentPage = this.currentPage;
 
@@ -263,7 +310,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	Trillion.prototype.renderPage = function () {
-	  var view = paginate(this);
+	  var view = paginate.call(this);
 	  var headers = this.headers;
 
 	  this.notifyListeners(view, headers);
@@ -1388,6 +1435,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
+	function MatchFilter(haystack, needle) {
+	  return haystack.indexOf(needle) !== -1;
+	}
+
 	exports.default = {
 	  'addFilter': function addFilter(filter) {
 	    if (!this.filters[filter._name]) {
@@ -1407,6 +1458,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    } else {
 	      this.addFilter(filter);
 	    }
+	  },
+
+	  'Filters': {
+	    'match': MatchFilter
 	  }
 	};
 

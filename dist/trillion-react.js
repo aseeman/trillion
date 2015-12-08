@@ -88,6 +88,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	    };
 	  },
 
+	  'getDefaultProps': function getDefaultProps() {
+	    return {
+	      'pagination': true,
+	      'search': true,
+	      'filters': true
+	    };
+	  },
+
 	  'prevPage': function prevPage() {
 	    var Trillion = this.props.Trillion;
 	    Trillion.getPreviousPage();
@@ -148,7 +156,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  return React.createElement(
 	    "div",
-	    null,
+	    { className: "TrillionTable" },
 	    React.createElement(
 	      "table",
 	      { className: "table table-striped table-bordered" },
@@ -159,11 +167,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	          "tr",
 	          null,
 	          indices.map(function (index, i) {
-	            return React.createElement(
-	              "th",
-	              { key: i, onClick: _this.sortByHeader.bind(_this, i) },
-	              index.label
-	            );
+	            if (index.visible) {
+	              return React.createElement(
+	                "th",
+	                { key: i, onClick: _this.sortByHeader.bind(_this, i) },
+	                index.label
+	              );
+	            }
 	          })
 	        )
 	      ),
@@ -175,11 +185,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	            "tr",
 	            { key: i },
 	            indices.map(function (index, j) {
-	              return React.createElement(
-	                "td",
-	                { key: index.field },
-	                String(row[index.field].display)
-	              );
+	              if (index.visible) {
+	                return React.createElement(
+	                  "td",
+	                  { key: index.field },
+	                  String(row[index.field].display)
+	                );
+	              }
 	            })
 	          );
 	        })
@@ -187,16 +199,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	    ),
 	    React.createElement(
 	      "div",
-	      null,
+	      { className: "TrillionTable-pages" },
 	      React.createElement(
-	        "a",
-	        { href: "#", onClick: this.prevPage },
+	        "button",
+	        { onClick: this.prevPage, type: "button", className: "btn" },
 	        "Prev"
 	      ),
-	      " ",
 	      React.createElement(
-	        "a",
-	        { href: "#", onClick: this.nextPage },
+	        "button",
+	        { onClick: this.nextPage, type: "button", className: "btn" },
 	        "Next"
 	      )
 	    )

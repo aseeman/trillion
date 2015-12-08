@@ -1,24 +1,46 @@
+/*
+
+todo:
+invisible indices
+index types
+money index type
+number sorting
+pagination UI
+filter UI
+sorting UI
+search UI
+fuzzy search
+possible crossfilter integration
+possible immutable.js integration
+tests
+readme
+
+*/
+
 import t from 'transducers.js';
 import assign from 'object-assign';
 
 import Filter from './filter';
 import Filters from './filters';
 
+//https://gist.github.com/jed/982883
+function uuid(a){return a?(a^Math.random()*16>>a/4).toString(16):([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,uuid)}
+
 function clamp (value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
 
-function paginate (trillion) {
-  let startIndex = (trillion.currentPage - 1) * trillion.options.pageSize;
-  let endIndex = Math.min(startIndex + trillion.options.pageSize, trillion.rows.length);
+function paginate () {
+  let startIndex = (this.currentPage - 1) * this.options.pageSize;
+  let endIndex = Math.min(startIndex + this.options.pageSize, this.rows.length);
   let view = [];
-  let rows = trillion.rows;
+  let rows = this.rows;
 
   for(let i = startIndex; i < endIndex; i++) {
     view.push(rows[i]);
   }
 
-  trillion.pageCount = Math.ceil(rows.length / trillion.options.pageSize);
+  this.pageCount = Math.ceil(rows.length / this.options.pageSize);
 
   return view;
 }
@@ -33,17 +55,28 @@ const Trillion = function (data, headers, options) {
 
 assign(Trillion.prototype, Filters);
 
-Trillion.prototype.initialize = function (input, headers, options) {
+Trillion.prototype.initialize = function (input, indices, options) {
   this.filters = {};
   this.options = {};
   this.listeners = [];
   this.sortConfig = null;
   this.currentPage = 1;
+  this.pageCount = 0;
 
   this.options.pageSize = clamp(options.pageSize, 1, 1000) || 100;
   this.options.lazy = !!options.lazy;
 
-  const fields = headers.map(index => {
+  const tableIndices = indices.map(index => {
+    return {
+      'visible': typeof index.visible === 'undefined' ? true : index.visible,
+      'field': index.field,
+      'label': index.label,
+      'type': index.type,
+      'id': uuid()
+    };
+  });
+
+  const fields = indices.map(index => {
     return index.field;
   });
 
@@ -53,10 +86,10 @@ Trillion.prototype.initialize = function (input, headers, options) {
     let ret = {};
     let item = input[i];
 
-    for(let field of fields) {
-      ret[field] = {
-        'display': item[field],
-        'raw': item[field]
+    for(let index of tableIndices) {
+      ret[index.field] = {
+        'display': item[index.field],
+        'raw': item[index.field]
       };
     }
 
@@ -64,7 +97,7 @@ Trillion.prototype.initialize = function (input, headers, options) {
   }
 
   this.data = output;
-  this.headers = headers;
+  this.headers = tableIndices;
   this.compute();
 };
 
@@ -87,8 +120,6 @@ Trillion.prototype.compute = function () {
 
   const transform = t.compose.apply(null, stack);
   const rows = t.seq(this.data, transform);
-
-  // todo: group
 
   this.sort();
 
@@ -140,6 +171,20 @@ Trillion.prototype.sortByHeader = function (headerIndex) {
   this.renderPage();
 };
 
+Trillion.prototype.getSortInfo = function () {
+  return {
+    'sortIndex': this.sortConfig.header.name,
+    'sortAsc': this.sortConfig.ascending
+  };
+};
+
+Trillion.prototype.getPageInfo = function () {
+  return {
+    'currentPage': this.currentPage,
+    'totalPages': this.pageCount
+  };
+};
+
 Trillion.prototype.getNextPage = function () {
   let currentPage = this.currentPage;
 
@@ -161,7 +206,7 @@ Trillion.prototype.getPreviousPage = function () {
 };
 
 Trillion.prototype.renderPage = function () {
-  const view = paginate(this);
+  const view = paginate.call(this);
   const headers = this.headers;
 
   this.notifyListeners(view, headers);

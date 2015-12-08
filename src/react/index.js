@@ -11,6 +11,14 @@ export default React.createClass({
     };
   },
 
+  'getDefaultProps': function () {
+    return {
+      'pagination': true,
+      'search': true,
+      'filters': true
+    };
+  },
+
   'prevPage': function () {
     const Trillion = this.props.Trillion;
     Trillion.getPreviousPage();

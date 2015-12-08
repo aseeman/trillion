@@ -1,3 +1,7 @@
+function MatchFilter (haystack, needle) {
+  return haystack.indexOf(needle) !== -1;
+}
+
 export default {
   'addFilter': function (filter) {
     if (!this.filters[filter._name]) {
@@ -17,5 +21,9 @@ export default {
     } else {
       this.addFilter(filter);
     }
+  },
+
+  'Filters': {
+    'match': MatchFilter
   }
 };
