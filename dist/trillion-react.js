@@ -71,16 +71,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _react2 = _interopRequireDefault(_react);
 
-	var _tableReact = __webpack_require__(3);
+	var _template = __webpack_require__(3);
 
-	var _tableReact2 = _interopRequireDefault(_tableReact);
+	var _template2 = _interopRequireDefault(_template);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	exports.default = _react2.default.createClass({
-	  displayName: 'trillion-react',
+	  displayName: 'react',
 
-	  'render': _tableReact2.default,
+	  'render': _template2.default,
 	  'getInitialState': function getInitialState() {
 	    return {
 	      'indices': [],
@@ -151,7 +151,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    null,
 	    React.createElement(
 	      "table",
-	      null,
+	      { className: "table table-striped table-bordered" },
 	      React.createElement(
 	        "thead",
 	        null,

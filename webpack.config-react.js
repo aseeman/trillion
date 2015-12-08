@@ -1,5 +1,5 @@
 module.exports = {
-  'entry': ['./src/trillion-react'],
+  'entry': ['./src/react'],
   'output': {
     'library': 'TrillionReact',
     'libraryTarget': 'umd',
