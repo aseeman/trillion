@@ -73,6 +73,20 @@ Trillion.prototype.addFilter = function (filter) {
   }
 };
 
+Trillion.prototype.removeFilter = function (filter) {
+  if (this.filters[filter._name]) {
+    delete this.filters[filter._name];
+  }
+};
+
+Trillion.prototype.toggleFilter = function (filter) {
+  if (this.filters[filter._name]) {
+    this.removeFilter(filter);
+  } else {
+    this.addFilter(filter);
+  }
+}
+
 Trillion.prototype.compute = function () {
   if (this.options.lazy && !this.listeners.length) {
     return;
