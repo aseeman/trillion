@@ -1,9 +1,8 @@
 import t from 'transducers.js';
-import debug from 'debug';
+import assign from 'object-assign';
 
 import Filter from './filter';
-
-const log = debug('trillion');
+import Filters from './filters';
 
 function clamp (value, min, max) {
   return Math.min(Math.max(value, min), max);
@@ -31,6 +30,8 @@ const Trillion = function (data, headers, options) {
 
   this.initialize(data, headers, options);
 };
+
+assign(Trillion.prototype, Filters);
 
 Trillion.prototype.initialize = function (input, headers, options) {
   this.filters = {};
@@ -67,34 +68,12 @@ Trillion.prototype.initialize = function (input, headers, options) {
   this.compute();
 };
 
-Trillion.prototype.addFilter = function (filter) {
-  if (!this.filters[filter._name]) {
-    this.filters[filter._name] = filter;
-  }
-};
-
-Trillion.prototype.removeFilter = function (filter) {
-  if (this.filters[filter._name]) {
-    delete this.filters[filter._name];
-  }
-};
-
-Trillion.prototype.toggleFilter = function (filter) {
-  if (this.filters[filter._name]) {
-    this.removeFilter(filter);
-  } else {
-    this.addFilter(filter);
-  }
-}
-
 Trillion.prototype.compute = function () {
   if (this.options.lazy && !this.listeners.length) {
     return;
   } else if (!this.data || !this.data.length) {
     return;
   }
-
-  log('compute start');
 
   let stack = [];
 
@@ -112,8 +91,6 @@ Trillion.prototype.compute = function () {
   // todo: group
 
   this.sort();
-
-  log('compute end');
 
   this.rows = rows;
 
