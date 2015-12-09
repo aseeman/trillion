@@ -75,21 +75,24 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _objectAssign2 = _interopRequireDefault(_objectAssign);
 
-	var _filter = __webpack_require__(4);
-
-	var _filter2 = _interopRequireDefault(_filter);
-
-	var _filters = __webpack_require__(5);
+	var _filters = __webpack_require__(4);
 
 	var _filters2 = _interopRequireDefault(_filters);
 
+	var _types = __webpack_require__(5);
+
+	var _types2 = _interopRequireDefault(_types);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	//todo: validate types
 
 	//https://gist.github.com/jed/982883
 	/*
 
 	todo:
-	invisible indices
+	-invisible indices
+	proxy sorting
 	index types
 	money index type
 	number sorting
@@ -123,7 +126,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    view.push(rows[i]);
 	  }
 
-	  this.pageCount = Math.ceil(rows.length / this.options.pageSize);
+	  this.totalPages = Math.ceil(rows.length / this.options.pageSize);
 
 	  return view;
 	}
@@ -138,13 +141,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	(0, _objectAssign2.default)(Trillion.prototype, _filters2.default);
 
+	Trillion.types = _types2.default;
+
 	Trillion.prototype.initialize = function (input, indices, options) {
 	  this.filters = {};
 	  this.options = {};
 	  this.listeners = [];
 	  this.sortConfig = null;
 	  this.currentPage = 1;
-	  this.pageCount = 0;
+	  this.totalPages = 1;
 
 	  this.options.pageSize = clamp(options.pageSize, 1, 1000) || 100;
 	  this.options.lazy = !!options.lazy;
@@ -155,7 +160,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      'field': index.field,
 	      'label': index.label,
 	      'type': index.type,
-	      'id': uuid()
+	      'id': uuid(),
+	      'sort': index.type && _types2.default[index.type] ? _types2.default[index.type].sort : null
 	    };
 	  });
 
@@ -177,9 +183,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	      for (var _iterator = tableIndices[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
 	        var index = _step.value;
 
+	        //todo: clone objects?
+	        var raw = item[index.field];
+	        var display = raw;
+	        var indexType = index.type;
+
+	        if (indexType && _types2.default[indexType]) {
+	          raw = _types2.default[indexType].convert(raw);
+	        }
+
 	        ret[index.field] = {
-	          'display': item[index.field],
-	          'raw': item[index.field]
+	          'display': display,
+	          'raw': raw
 	        };
 	      }
 	    } catch (err) {
@@ -238,21 +253,37 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return;
 	  }
 
-	  var field = this.sortConfig.header.field;
-	  var type = this.sortConfig.header.type;
+	  var header = this.sortConfig.header;
+
+	  var field = header.field;
+	  var type = header.type;
+	  var sort = header.sort;
 	  var ascending = this.sortConfig.ascending;
 
-	  if (type === String) {
-	    this.rows = this.rows.sort(function (a, b) {
-	      var x = ascending ? a : b;
-	      var y = ascending ? b : a;
-	      return x[field].raw.localeCompare(y[field].raw);
-	    });
-	  } else {
-	    this.rows = this.rows.sort(function (a, b) {
-	      return a[field].raw - b[field].raw;
-	    });
+	  if (sort) {
+	    var sortFn = function sortFn(a, b) {
+	      var x = a[field].raw;
+	      var y = b[field].raw;
+
+	      var sortVal = clamp(sort(x, y), -1, 1);
+	      return ascending ? 0 - sortVal : sortVal;
+	    };
+
+	    this.rows = this.rows.sort(sortFn);
 	  }
+	  /*
+	    if (type === String) {
+	      this.rows = this.rows.sort(function (a, b) {
+	        let x = ascending ? a : b;
+	        let y = ascending ? b : a;
+	        return x[field].raw.localeCompare(y[field].raw);
+	      });
+	    } else {
+	      this.rows = this.rows.sort(function (a, b) {
+	        return a[field].raw - b[field].raw;
+	      });
+	    }
+	  */
 	};
 
 	Trillion.prototype.sortByHeader = function (headerIndex) {
@@ -276,6 +307,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	Trillion.prototype.getSortInfo = function () {
+	  if (!this.sortConfig) {
+	    return {};
+	  }
+
 	  return {
 	    'sortIndex': this.sortConfig.header.name,
 	    'sortAsc': this.sortConfig.ascending
@@ -285,14 +320,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	Trillion.prototype.getPageInfo = function () {
 	  return {
 	    'currentPage': this.currentPage,
-	    'totalPages': this.pageCount
+	    'totalPages': this.totalPages
 	  };
 	};
 
 	Trillion.prototype.getNextPage = function () {
 	  var currentPage = this.currentPage;
 
-	  if (currentPage + 1 <= this.pageCount) {
+	  if (currentPage + 1 <= this.totalPages) {
 	    this.currentPage = currentPage + 1;
 	  }
 
@@ -311,15 +346,19 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	Trillion.prototype.renderPage = function () {
 	  var view = paginate.call(this);
-	  var headers = this.headers;
 
-	  this.notifyListeners(view, headers);
+	  this.notifyListeners(view);
 	};
 
-	Trillion.prototype.notifyListeners = function (rows, headers) {
+	Trillion.prototype.notifyListeners = function (view) {
+	  var headers = this.headers;
+	  //todo: this could be bundled into the view, since it's directly related
+	  var pageInfo = this.getPageInfo();
+	  var sortInfo = this.getSortInfo();
+
 	  for (var i = 0, l = this.listeners.length; i < l; i++) {
 	    if (typeof this.listeners[i] === 'function') {
-	      this.listeners[i](rows, headers);
+	      this.listeners[i](view, headers, pageInfo, sortInfo);
 	    }
 	  }
 	};
@@ -365,8 +404,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	exports.default = Trillion;
-
-	Trillion.Filter = _filter2.default;
 
 	module.exports = exports.default;
 
@@ -1397,49 +1434,32 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.Match = Match;
-
-	exports.default = function (type, field, value) {
-	  var name = type + '-' + field + '-' + value;
-	  var fn = function fn() {
-	    return true;
-	  };
-
-	  if (filters[type]) {
-	    fn = function (data) {
-	      return filters[type](data[field].raw, value);
-	    };
-	  }
-
-	  fn._name = name;
-
-	  return fn;
-	};
-
-	function Match(haystack, needle) {
-	  return haystack.indexOf(needle) !== -1;
-	}
-
-	var filters = {
-	  'match': Match
-	};
-
-	;
-
-/***/ },
-/* 5 */
-/***/ function(module, exports) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
 	function MatchFilter(haystack, needle) {
 	  return haystack.indexOf(needle) !== -1;
 	}
 
+	var filters = {
+	  'match': MatchFilter
+	};
+
 	exports.default = {
+	  'createFilter': function createFilter(type, field, value) {
+	    var name = type + '-' + field + '-' + value;
+	    var fn = function fn() {
+	      return true;
+	    };
+
+	    if (filters[type]) {
+	      fn = function (data) {
+	        return filters[type](data[field].raw, value, [type, field]);
+	      };
+	    }
+
+	    fn._name = name;
+
+	    return fn;
+	  },
+
 	  'addFilter': function addFilter(filter) {
 	    if (!this.filters[filter._name]) {
 	      this.filters[filter._name] = filter;
@@ -1460,8 +1480,43 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  },
 
-	  'Filters': {
-	    'match': MatchFilter
+	  'Filters': filters
+	};
+
+/***/ },
+/* 5 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.default = {
+	  'text': {
+	    'convert': function convert(raw) {
+	      if (typeof raw === 'string') {
+	        return raw;
+	      } else {
+	        return String(raw);
+	      }
+	    },
+	    'sort': function sort(a, b) {
+	      return a.localeCompare(b);
+	    }
+	  },
+
+	  'number': {
+	    'convert': function convert(raw) {
+	      if (typeof raw === 'number' && !isNaN(raw)) {
+	        return raw;
+	      } else {
+	        return parseFloat(raw);
+	      }
+	    },
+	    'sort': function sort(a, b) {
+	      return a - b;
+	    }
 	  }
 	};
 

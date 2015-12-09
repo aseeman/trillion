@@ -1,7 +1,8 @@
 /*
 
 todo:
-invisible indices
+-invisible indices
+proxy sorting
 index types
 money index type
 number sorting
@@ -20,8 +21,10 @@ readme
 import t from 'transducers.js';
 import assign from 'object-assign';
 
-import Filter from './filter';
 import Filters from './filters';
+import Types from './types';
+
+//todo: validate types
 
 //https://gist.github.com/jed/982883
 function uuid(a){return a?(a^Math.random()*16>>a/4).toString(16):([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,uuid)}
@@ -40,7 +43,7 @@ function paginate () {
     view.push(rows[i]);
   }
 
-  this.pageCount = Math.ceil(rows.length / this.options.pageSize);
+  this.totalPages = Math.ceil(rows.length / this.options.pageSize);
 
   return view;
 }
@@ -55,13 +58,15 @@ const Trillion = function (data, headers, options) {
 
 assign(Trillion.prototype, Filters);
 
+Trillion.types = Types;
+
 Trillion.prototype.initialize = function (input, indices, options) {
   this.filters = {};
   this.options = {};
   this.listeners = [];
   this.sortConfig = null;
   this.currentPage = 1;
-  this.pageCount = 0;
+  this.totalPages = 1;
 
   this.options.pageSize = clamp(options.pageSize, 1, 1000) || 100;
   this.options.lazy = !!options.lazy;
@@ -72,7 +77,8 @@ Trillion.prototype.initialize = function (input, indices, options) {
       'field': index.field,
       'label': index.label,
       'type': index.type,
-      'id': uuid()
+      'id': uuid(),
+      'sort': (index.type && Types[index.type]) ? Types[index.type].sort : null
     };
   });
 
@@ -87,9 +93,18 @@ Trillion.prototype.initialize = function (input, indices, options) {
     let item = input[i];
 
     for(let index of tableIndices) {
+      //todo: clone objects?
+      let raw = item[index.field];
+      let display = raw;
+      const indexType = index.type;
+
+      if (indexType && Types[indexType]) {
+        raw = Types[indexType].convert(raw);
+      }
+
       ret[index.field] = {
-        'display': item[index.field],
-        'raw': item[index.field]
+        'display': display,
+        'raw': raw
       };
     }
 
@@ -134,10 +149,25 @@ Trillion.prototype.sort = function () {
     return;
   }
 
-  let field = this.sortConfig.header.field;
-  let type = this.sortConfig.header.type;
+  let header = this.sortConfig.header;
+
+  let field = header.field;
+  let type = header.type;
+  let sort = header.sort;
   let ascending = this.sortConfig.ascending;
 
+  if (sort) {
+    const sortFn = function (a, b) {
+      const x = a[field].raw;
+      const y = b[field].raw;
+
+      const sortVal = clamp(sort(x, y), -1, 1);
+      return ascending ? 0 - sortVal : sortVal;
+    }
+
+    this.rows = this.rows.sort(sortFn);
+  }
+/*
   if (type === String) {
     this.rows = this.rows.sort(function (a, b) {
       let x = ascending ? a : b;
@@ -149,6 +179,7 @@ Trillion.prototype.sort = function () {
       return a[field].raw - b[field].raw;
     });
   }
+*/
 };
 
 Trillion.prototype.sortByHeader = function (headerIndex) {
@@ -172,6 +203,10 @@ Trillion.prototype.sortByHeader = function (headerIndex) {
 };
 
 Trillion.prototype.getSortInfo = function () {
+  if (!this.sortConfig) {
+    return {};
+  }
+
   return {
     'sortIndex': this.sortConfig.header.name,
     'sortAsc': this.sortConfig.ascending
@@ -181,14 +216,14 @@ Trillion.prototype.getSortInfo = function () {
 Trillion.prototype.getPageInfo = function () {
   return {
     'currentPage': this.currentPage,
-    'totalPages': this.pageCount
+    'totalPages': this.totalPages
   };
 };
 
 Trillion.prototype.getNextPage = function () {
   let currentPage = this.currentPage;
 
-  if (currentPage + 1 <= this.pageCount) {
+  if (currentPage + 1 <= this.totalPages) {
     this.currentPage = currentPage + 1;
   }
 
@@ -207,15 +242,19 @@ Trillion.prototype.getPreviousPage = function () {
 
 Trillion.prototype.renderPage = function () {
   const view = paginate.call(this);
-  const headers = this.headers;
 
-  this.notifyListeners(view, headers);
+  this.notifyListeners(view);
 };
 
-Trillion.prototype.notifyListeners = function (rows, headers) {
+Trillion.prototype.notifyListeners = function (view) {
+  const headers = this.headers;
+  //todo: this could be bundled into the view, since it's directly related
+  const pageInfo = this.getPageInfo();
+  const sortInfo = this.getSortInfo();
+
   for(let i = 0, l = this.listeners.length; i < l; i++) {
     if (typeof this.listeners[i] === 'function') {
-      this.listeners[i](rows, headers);
+      this.listeners[i](view, headers, pageInfo, sortInfo);
     }
   }
 };
@@ -261,7 +300,5 @@ Trillion.prototype.unregisterListener = function (listener) {
 };
 
 export default Trillion;
-
-Trillion.Filter = Filter;
 
 module.exports = exports.default;

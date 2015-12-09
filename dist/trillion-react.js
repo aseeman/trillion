@@ -84,7 +84,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  'getInitialState': function getInitialState() {
 	    return {
 	      'indices': [],
-	      'rows': []
+	      'rows': [],
+	      'page': 1,
+	      'totalPages': 1
 	    };
 	  },
 
@@ -112,10 +114,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    Trillion.sortByHeader(headerIndex);
 	  },
 
-	  'updateFromTrillion': function updateFromTrillion(rows, indices) {
+	  'updateFromTrillion': function updateFromTrillion(rows, indices, pageInfo) {
 	    this.setState({
 	      'rows': rows,
-	      'indices': indices
+	      'indices': indices,
+	      'page': pageInfo.currentPage,
+	      'totalPages': pageInfo.totalPages
 	    });
 	  },
 
@@ -202,12 +206,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	      { className: "TrillionTable-pages" },
 	      React.createElement(
 	        "button",
-	        { onClick: this.prevPage, type: "button", className: "btn" },
+	        { onClick: this.prevPage, type: "button", className: "btn btn-default" },
 	        "Prev"
 	      ),
 	      React.createElement(
 	        "button",
-	        { onClick: this.nextPage, type: "button", className: "btn" },
+	        { onClick: this.nextPage, type: "button", className: "btn btn-default" },
 	        "Next"
 	      )
 	    )

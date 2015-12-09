@@ -41,23 +41,23 @@ var headers = [
   {
     'label': 'Name',
     'field': 'name',
-    'type': String
+    'type': 'text'
   },
   {
     'label': 'Price',
     'field': 'price',
-    'type': Number
+    'type': 'number'
   },
   {
     'label': 'Release date',
     'field': 'release',
-    'type': Date
+    'type': 'date'
   },
   {
     'label': 'Brand',
     'visible': false,
     'field': 'brand',
-    'type': String
+    'type': 'text'
   }
 ];
 
@@ -74,7 +74,7 @@ var trillion = Trillion(test.data, test.indices, {
   'pageSize': 25
 });
 
-trillion.addFilter(new Trillion.Filter('match', 'name', 'BMW'));
+trillion.addFilter(trillion.createFilter('match', 'name', 'BMW'));
 
 ReactDOM.render(
   React.createElement(TrillionReact, {

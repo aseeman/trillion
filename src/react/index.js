@@ -7,7 +7,9 @@ export default React.createClass({
   'getInitialState': function () {
     return {
       'indices': [],
-      'rows': []
+      'rows': [],
+      'page': 1,
+      'totalPages': 1
     };
   },
 
@@ -35,10 +37,12 @@ export default React.createClass({
     Trillion.sortByHeader(headerIndex);
   },
 
-  'updateFromTrillion': function (rows, indices) {
+  'updateFromTrillion': function (rows, indices, pageInfo) {
     this.setState({
       'rows': rows,
-      'indices': indices
+      'indices': indices,
+      'page': pageInfo.currentPage,
+      'totalPages': pageInfo.totalPages
     });
   },
 

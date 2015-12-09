@@ -2,7 +2,28 @@ function MatchFilter (haystack, needle) {
   return haystack.indexOf(needle) !== -1;
 }
 
+const filters = {
+  'match': MatchFilter
+};
+
 export default {
+  'createFilter': function (type, field, value) {
+    const name = `${type}-${field}-${value}`;
+    let fn = function () {
+      return true;
+    };
+
+    if (filters[type]) {
+      fn = function (data) {
+        return filters[type](data[field].raw, value, [type, field])
+      };
+    }
+
+    fn._name = name;
+
+    return fn;
+  },
+
   'addFilter': function (filter) {
     if (!this.filters[filter._name]) {
       this.filters[filter._name] = filter;
@@ -23,7 +44,5 @@ export default {
     }
   },
 
-  'Filters': {
-    'match': MatchFilter
-  }
+  'Filters': filters
 };
