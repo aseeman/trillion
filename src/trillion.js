@@ -2,10 +2,9 @@
 
 todo:
 -invisible indices
-proxy sorting
-index types
-money index type
-number sorting
+proxy sorting & money index type
+-index types
+-number sorting
 pagination UI
 filter UI
 sorting UI
@@ -15,6 +14,7 @@ possible crossfilter integration
 possible immutable.js integration
 tests
 readme
+eslint
 
 */
 
