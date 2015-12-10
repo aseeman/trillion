@@ -1,9 +1,16 @@
+import fuzzysearch from 'fuzzysearch';
+
 function MatchFilter (haystack, needle) {
   return haystack.indexOf(needle) !== -1;
 }
 
+function FuzzyFilter (haystack, needle) {
+  return fuzzysearch(needle, haystack);
+}
+
 const filters = {
-  'match': MatchFilter
+  'match': MatchFilter,
+  'fuzzy': FuzzyFilter
 };
 
 export default {
