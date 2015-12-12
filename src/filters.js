@@ -5,26 +5,8 @@ function MatchFilter (haystack, needle) {
   return haystack.indexOf(needle) !== -1;
 }
 
-function FuzzyFilter (haystack, needle) {
-  let source = haystack.toLowerCase().replace(/\-/g, ' ').replace(/[^a-z0-9 ]/g, '');
-  let search = needle.toLowerCase().replace(/\-/g, ' ').replace(/[^a-z0-9 ]/g, '');
-
-  if (fuzzysearch(search, source)) {
-    return true;
-  } else {
-    let dlDistance = damerau(source, search);
-
-    if (dlDistance.relative > 0.5 && dlDistance.similarity > 0.4) {
-      return true;
-    }
-
-    return false;
-  }
-}
-
 const filters = {
-  'match': MatchFilter,
-  'fuzzy': FuzzyFilter
+  'match': MatchFilter
 };
 
 export default {

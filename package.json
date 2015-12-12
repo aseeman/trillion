@@ -26,6 +26,7 @@
   },
   "homepage": "https://github.com/imsky/trillion#readme",
   "dependencies": {
+    "damerau-levenshtein": "^0.1.3",
     "debug": "^2",
     "fuzzysearch": "^1.0.3",
     "object-assign": "^4.0.1",
