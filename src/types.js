@@ -23,5 +23,18 @@ export default {
     'sort': function (a, b) {
       return a - b;
     }
+  },
+
+  'date': {
+    'convert': function (raw) {
+      if (raw.constructor === Date) {
+        return raw;
+      } else {
+        return new Date(raw);
+      }
+    },
+    'sort': function (a, b) {
+      return a - b;
+    }
   }
 }
