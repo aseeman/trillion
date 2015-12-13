@@ -2,7 +2,6 @@
 
 todo:
 -invisible indices
-proxy sorting & money index type
 -index types
 -number sorting
 range filter
@@ -72,11 +71,16 @@ Trillion.prototype.initialize = function (input, indices, options) {
 
   this.options.pageSize = clamp(options.pageSize, 1, 1000) || 100;
   this.options.lazy = !!options.lazy;
+  this.options.types = options.types;
+
+  assign(Trillion.types, options.types);
 
   const tableIndices = indices.map(index => {
     return {
       'visible': typeof index.visible === 'undefined' ? true : index.visible,
       'field': index.field,
+      'generator': index.generator,
+      'display': index.display,
       'label': index.label,
       'type': index.type,
       'id': uuid(),
@@ -97,7 +101,17 @@ Trillion.prototype.initialize = function (input, indices, options) {
     for(let index of tableIndices) {
       //todo: clone objects?
       let raw = item[index.field];
+
+      if (index.generator) {
+        raw = index.generator(item);
+      }
+
       let display = raw;
+
+      if (index.display) {
+        display = index.display(raw);
+      }
+
       const indexType = index.type;
 
       if (indexType && Types[indexType]) {
