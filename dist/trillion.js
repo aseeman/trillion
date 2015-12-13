@@ -79,7 +79,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _filters2 = _interopRequireDefault(_filters);
 
-	var _types = __webpack_require__(5);
+	var _types = __webpack_require__(7);
 
 	var _types2 = _interopRequireDefault(_types);
 
@@ -92,19 +92,20 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	todo:
 	-invisible indices
-	proxy sorting
-	index types
-	money index type
-	number sorting
+	-index types
+	-number sorting
+	range filter
 	pagination UI
 	filter UI
 	sorting UI
 	search UI
 	fuzzy search
+	blank cells?
 	possible crossfilter integration
 	possible immutable.js integration
 	tests
 	readme
+	eslint
 
 	*/
 
@@ -153,11 +154,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  this.options.pageSize = clamp(options.pageSize, 1, 1000) || 100;
 	  this.options.lazy = !!options.lazy;
+	  this.options.types = options.types;
+
+	  (0, _objectAssign2.default)(Trillion.types, options.types);
 
 	  var tableIndices = indices.map(function (index) {
 	    return {
 	      'visible': typeof index.visible === 'undefined' ? true : index.visible,
 	      'field': index.field,
+	      'generator': index.generator,
+	      'display': index.display,
 	      'label': index.label,
 	      'type': index.type,
 	      'id': uuid(),
@@ -185,11 +191,23 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        //todo: clone objects?
 	        var raw = item[index.field];
+
+	        if (index.generator) {
+	          raw = index.generator(item);
+	        }
+
 	        var display = raw;
+
 	        var indexType = index.type;
 
 	        if (indexType && _types2.default[indexType]) {
-	          raw = _types2.default[indexType].convert(raw);
+	          if (typeof raw !== 'undefined') {
+	            raw = _types2.default[indexType].convert(raw);
+	          }
+	        }
+
+	        if (index.display) {
+	          display = index.display(raw);
 	        }
 
 	        ret[index.field] = {
@@ -260,38 +278,44 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var sort = header.sort;
 	  var ascending = this.sortConfig.ascending;
 
+	  var sortFn = function sortFn(a, b) {
+	    var x = a[field].raw;
+	    var y = b[field].raw;
+	    if (typeof x === 'number' && typeof y === 'number') {
+	      return _types2.default.number.sort(x, y);
+	    } else if (typeof x === 'string' && typeof y === 'string') {
+	      return _types2.default.string.sort(x, y);
+	    } else {
+	      return x < y ? -1 : x === y ? 0 : 1;
+	    }
+	  };
+
 	  if (sort) {
-	    var sortFn = function sortFn(a, b) {
+	    sortFn = function (a, b) {
 	      var x = a[field].raw;
 	      var y = b[field].raw;
 
 	      var sortVal = clamp(sort(x, y), -1, 1);
 	      return ascending ? 0 - sortVal : sortVal;
 	    };
-
-	    this.rows = this.rows.sort(sortFn);
 	  }
-	  /*
-	    if (type === String) {
-	      this.rows = this.rows.sort(function (a, b) {
-	        let x = ascending ? a : b;
-	        let y = ascending ? b : a;
-	        return x[field].raw.localeCompare(y[field].raw);
-	      });
-	    } else {
-	      this.rows = this.rows.sort(function (a, b) {
-	        return a[field].raw - b[field].raw;
-	      });
-	    }
-	  */
+
+	  this.rows = this.rows.sort(sortFn);
 	};
 
-	Trillion.prototype.sortByHeader = function (headerIndex) {
-	  if (headerIndex >= this.headers.length) {
-	    throw Error('Header index out of bounds');
+	Trillion.prototype.sortByHeader = function (headerId) {
+	  var header = null;
+
+	  for (var i = 0; i < this.headers.length; i++) {
+	    if (this.headers[i].id === headerId) {
+	      header = this.headers[i];
+	      break;
+	    }
 	  }
 
-	  var header = this.headers[headerIndex];
+	  if (!header) {
+	    throw Error('Header not found');
+	  }
 
 	  if (this.sortConfig && header === this.sortConfig.header) {
 	    this.sortConfig.ascending = !this.sortConfig.ascending;
@@ -1427,13 +1451,24 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 4 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
+
+	var _fuzzysearch = __webpack_require__(5);
+
+	var _fuzzysearch2 = _interopRequireDefault(_fuzzysearch);
+
+	var _damerauLevenshtein = __webpack_require__(6);
+
+	var _damerauLevenshtein2 = _interopRequireDefault(_damerauLevenshtein);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 	function MatchFilter(haystack, needle) {
 	  return haystack.indexOf(needle) !== -1;
 	}
@@ -1489,6 +1524,101 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
+	function fuzzysearch(needle, haystack) {
+	  var tlen = haystack.length;
+	  var qlen = needle.length;
+	  if (qlen > tlen) {
+	    return false;
+	  }
+	  if (qlen === tlen) {
+	    return needle === haystack;
+	  }
+	  outer: for (var i = 0, j = 0; i < qlen; i++) {
+	    var nch = needle.charCodeAt(i);
+	    while (j < tlen) {
+	      if (haystack.charCodeAt(j++) === nch) {
+	        continue outer;
+	      }
+	    }
+	    return false;
+	  }
+	  return true;
+	}
+
+	module.exports = fuzzysearch;
+
+/***/ },
+/* 6 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	// TheSpanishInquisition
+
+	// Cache the matrix. Note this implementation is limited to
+	// strings of 64 char or less. This could be altered to update
+	// dynamically, or a larger value could be used.
+
+	// TODO: grok it.
+	// The matrix was cached, as above comment states, but it was throwing unpredictable results sometimes. Either there was a bug or I was using it wrong. Now matrix is recreated on each call and results are correct. This probabily hits performance.
+
+	module.exports = function (__this, that, limit) {
+	  var matrix = [];
+	  for (var i = 0; i < 64; i++) {
+	    matrix[i] = [i];
+	    matrix[i].length = 64;
+	  }
+	  for (var i = 0; i < 64; i++) {
+	    matrix[0][i] = i;
+	  }
+
+	  var thisLength = __this.length,
+	      thatLength = that.length;
+
+	  var prepare = function prepare(steps) {
+	    var distance = {};
+	    distance.steps = steps;
+	    distance.relative = steps / Math.max(thisLength, thatLength);
+	    distance.similarity = 1 - distance.relative;
+
+	    return distance;
+	  };
+
+	  if (Math.abs(thisLength - thatLength) > (limit || 32)) return prepare(limit || 32);
+	  if (thisLength === 0) return prepare(thatLength);
+	  if (thatLength === 0) return prepare(thisLength);
+
+	  // Calculate matrix.
+	  var this_i, that_j, cost, min, t;
+	  for (var i = 1; i <= thisLength; ++i) {
+	    this_i = __this[i - 1];
+
+	    // Step 4
+	    for (var j = 1; j <= thatLength; ++j) {
+	      // Check the jagged ld total so far
+	      if (i === j && matrix[i][j] > 4) return prepare(thisLength);
+
+	      that_j = that[j - 1];
+	      cost = this_i === that_j ? 0 : 1; // Step 5
+	      // Calculate the minimum (much faster than Math.min(...)).
+	      min = matrix[i - 1][j] + 1; // Deletion.
+	      if ((t = matrix[i][j - 1] + 1) < min) min = t; // Insertion.
+	      if ((t = matrix[i - 1][j - 1] + cost) < min) min = t; // Substitution.
+
+	      // Update matrix.
+	      matrix[i][j] = i > 1 && j > 1 && this_i === that[j - 2] && __this[i - 2] === that_j && (t = matrix[i - 2][j - 2] + cost) < min ? t : min; // Transposition.
+	    }
+	  }
+
+	  return prepare(matrix[thisLength][thatLength]);
+	};
+
+/***/ },
+/* 7 */
+/***/ function(module, exports) {
+
+	'use strict';
+
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
@@ -1516,6 +1646,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	    },
 	    'sort': function sort(a, b) {
 	      return a - b;
+	    }
+	  },
+
+	  'date': {
+	    'convert': function convert(raw) {
+	      if (raw.constructor === Date) {
+	        return raw;
+	      } else {
+	        return new Date(raw);
+	      }
+	    },
+	    'sort': function sort(a, b) {
+	      if (typeof a === 'undefined') {
+	        return -1;
+	      } else if (typeof b === 'undefined') {
+	        return 1;
+	      } else {
+	        return a - b;
+	      }
 	    }
 	  }
 	};

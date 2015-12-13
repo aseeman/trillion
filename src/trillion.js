@@ -108,16 +108,16 @@ Trillion.prototype.initialize = function (input, indices, options) {
 
       let display = raw;
 
-      if (index.display) {
-        display = index.display(raw);
-      }
-
       const indexType = index.type;
 
       if (indexType && Types[indexType]) {
         if (typeof raw !== 'undefined') {
           raw = Types[indexType].convert(raw);
         }
+      }
+
+      if (index.display) {
+        display = index.display(raw);
       }
 
       ret[index.field] = {
