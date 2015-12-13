@@ -191,7 +191,7 @@ Trillion.prototype.sort = function () {
       const x = a[field].raw;
       const y = b[field].raw;
 
-      const sortVal = clamp(sort(x, y), -1, 1);
+      const sortVal = clamp(sort(x, y, ascending), -1, 1);
       return ascending ? 0 - sortVal : sortVal;
     }
   }

@@ -295,7 +295,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var x = a[field].raw;
 	      var y = b[field].raw;
 
-	      var sortVal = clamp(sort(x, y), -1, 1);
+	      var sortVal = clamp(sort(x, y, ascending), -1, 1);
 	      return ascending ? 0 - sortVal : sortVal;
 	    };
 	  }
