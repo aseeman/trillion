@@ -102,6 +102,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	search UI
 	fuzzy search
 	blank cells?
+	custom filters?
 	default sort direction per header
 	possible crossfilter integration
 	possible immutable.js integration
@@ -1479,9 +1480,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return a === b;
 	}
 
+	function MinFilter(a, b) {
+	  return a >= b;
+	}
+
+	function MaxFilter(a, b) {
+	  return a <= b;
+	}
+
 	var filters = {
 	  'match': MatchFilter,
-	  'equal': EqualFilter
+	  'equal': EqualFilter,
+	  'min': MinFilter,
+	  'max': MaxFilter
 	};
 
 	exports.default = {

@@ -9,9 +9,19 @@ function EqualFilter (a, b) {
   return a === b;
 }
 
+function MinFilter (a, b) {
+  return a >= b;
+}
+
+function MaxFilter (a, b) {
+  return a <= b;
+}
+
 const filters = {
   'match': MatchFilter,
-  'equal': EqualFilter
+  'equal': EqualFilter,
+  'min': MinFilter,
+  'max': MaxFilter
 };
 
 export default {
