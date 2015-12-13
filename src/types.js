@@ -12,6 +12,15 @@ export default {
     }
   },
 
+  'boolean': {
+    'convert': function (raw) {
+      return !!raw;
+    },
+    'sort': function (a, b) {
+      return a > b;
+    }
+  },
+
   'number': {
     'convert': function (raw) {
       if (typeof raw === 'number' && !isNaN(raw)) {

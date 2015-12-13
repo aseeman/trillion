@@ -5,8 +5,13 @@ function MatchFilter (haystack, needle) {
   return haystack.indexOf(needle) !== -1;
 }
 
+function EqualFilter (a, b) {
+  return a === b;
+}
+
 const filters = {
-  'match': MatchFilter
+  'match': MatchFilter,
+  'equal': EqualFilter
 };
 
 export default {

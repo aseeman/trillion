@@ -95,12 +95,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	-index types
 	-number sorting
 	range filter
+	lock/unlock
 	pagination UI
 	filter UI
 	sorting UI
 	search UI
 	fuzzy search
 	blank cells?
+	default sort direction per header
 	possible crossfilter integration
 	possible immutable.js integration
 	tests
@@ -1473,8 +1475,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return haystack.indexOf(needle) !== -1;
 	}
 
+	function EqualFilter(a, b) {
+	  return a === b;
+	}
+
 	var filters = {
-	  'match': MatchFilter
+	  'match': MatchFilter,
+	  'equal': EqualFilter
 	};
 
 	exports.default = {
@@ -1633,6 +1640,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	    },
 	    'sort': function sort(a, b) {
 	      return a.localeCompare(b);
+	    }
+	  },
+
+	  'boolean': {
+	    'convert': function convert(raw) {
+	      return !!raw;
+	    },
+	    'sort': function sort(a, b) {
+	      return a > b;
 	    }
 	  },
 

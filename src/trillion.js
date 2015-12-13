@@ -5,12 +5,14 @@ todo:
 -index types
 -number sorting
 range filter
+lock/unlock
 pagination UI
 filter UI
 sorting UI
 search UI
 fuzzy search
 blank cells?
+default sort direction per header
 possible crossfilter integration
 possible immutable.js integration
 tests
