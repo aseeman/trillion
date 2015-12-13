@@ -296,7 +296,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var y = b[field].raw;
 
 	      var sortVal = clamp(sort(x, y, ascending), -1, 1);
-	      return ascending ? 0 - sortVal : sortVal;
+	      return ascending ? sortVal : 0 - sortVal;
 	    };
 	  }
 
@@ -322,7 +322,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  } else {
 	    this.sortConfig = {
 	      'header': header,
-	      'ascending': false
+	      'ascending': true
 	    };
 	  }
 
@@ -336,8 +336,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 
 	  return {
-	    'sortIndex': this.sortConfig.header.name,
-	    'sortAsc': this.sortConfig.ascending
+	    'header': this.sortConfig.header,
+	    'ascending': this.sortConfig.ascending
 	  };
 	};
 

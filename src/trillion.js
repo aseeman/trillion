@@ -192,7 +192,7 @@ Trillion.prototype.sort = function () {
       const y = b[field].raw;
 
       const sortVal = clamp(sort(x, y, ascending), -1, 1);
-      return ascending ? 0 - sortVal : sortVal;
+      return ascending ? sortVal : 0 - sortVal;
     }
   }
 
@@ -218,7 +218,7 @@ Trillion.prototype.sortByHeader = function (headerId) {
   } else{
     this.sortConfig = {
       'header': header,
-      'ascending': false
+      'ascending': true
     };
   }
 
@@ -232,8 +232,8 @@ Trillion.prototype.getSortInfo = function () {
   }
 
   return {
-    'sortIndex': this.sortConfig.header.name,
-    'sortAsc': this.sortConfig.ascending
+    'header': this.sortConfig.header,
+    'ascending': this.sortConfig.ascending
   };
 };
 
