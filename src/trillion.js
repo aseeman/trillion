@@ -5,11 +5,13 @@ todo:
 proxy sorting & money index type
 -index types
 -number sorting
+range filter
 pagination UI
 filter UI
 sorting UI
 search UI
 fuzzy search
+blank cells?
 possible crossfilter integration
 possible immutable.js integration
 tests
@@ -99,7 +101,9 @@ Trillion.prototype.initialize = function (input, indices, options) {
       const indexType = index.type;
 
       if (indexType && Types[indexType]) {
-        raw = Types[indexType].convert(raw);
+        if (typeof raw !== 'undefined') {
+          raw = Types[indexType].convert(raw);
+        }
       }
 
       ret[index.field] = {
@@ -156,38 +160,44 @@ Trillion.prototype.sort = function () {
   let sort = header.sort;
   let ascending = this.sortConfig.ascending;
 
+  let sortFn = function (a, b) {
+    const x = a[field].raw;
+    const y = b[field].raw;
+    if (typeof x === 'number' && typeof y === 'number') {
+      return Types.number.sort(x, y);
+    } else if (typeof x === 'string' && typeof y === 'string') {
+      return Types.string.sort(x, y);
+    } else {
+      return x < y ? -1 : (x === y ? 0 : 1);
+    }
+  };
+
   if (sort) {
-    const sortFn = function (a, b) {
+    sortFn = function (a, b) {
       const x = a[field].raw;
       const y = b[field].raw;
 
       const sortVal = clamp(sort(x, y), -1, 1);
       return ascending ? 0 - sortVal : sortVal;
     }
+  }
 
-    this.rows = this.rows.sort(sortFn);
-  }
-/*
-  if (type === String) {
-    this.rows = this.rows.sort(function (a, b) {
-      let x = ascending ? a : b;
-      let y = ascending ? b : a;
-      return x[field].raw.localeCompare(y[field].raw);
-    });
-  } else {
-    this.rows = this.rows.sort(function (a, b) {
-      return a[field].raw - b[field].raw;
-    });
-  }
-*/
+  this.rows = this.rows.sort(sortFn);
 };
 
-Trillion.prototype.sortByHeader = function (headerIndex) {
-  if (headerIndex >= this.headers.length) {
-    throw Error('Header index out of bounds');
+Trillion.prototype.sortByHeader = function (headerId) {
+  let header = null;
+
+  for(let i = 0; i < this.headers.length; i++) {
+    if (this.headers[i].id === headerId) {
+      header = this.headers[i];
+      break;
+    }
   }
 
-  let header = this.headers[headerIndex];
+  if (!header) {
+    throw Error('Header not found');
+  }
 
   if (this.sortConfig && header === this.sortConfig.header) {
     this.sortConfig.ascending = !this.sortConfig.ascending;

@@ -34,7 +34,13 @@ export default {
       }
     },
     'sort': function (a, b) {
-      return a - b;
+      if (typeof a === 'undefined') {
+        return -1;
+      } else if (typeof b === 'undefined') {
+        return 1;
+      } else {
+        return a - b;
+      }
     }
   }
 }
