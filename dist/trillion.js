@@ -94,7 +94,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	-invisible indices
 	-index types
 	-number sorting
-	range filter
+	-range filter
 	lock/unlock
 	pagination UI
 	filter UI
@@ -261,9 +261,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var transform = _transducers2.default.compose.apply(null, stack);
 	  var rows = _transducers2.default.seq(this.data, transform);
 
-	  this.sort();
-
 	  this.rows = rows;
+
+	  this.sort();
 
 	  this.renderPage();
 	};
