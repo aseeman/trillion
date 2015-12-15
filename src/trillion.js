@@ -1,10 +1,7 @@
 /*
 
 todo:
--invisible indices
--index types
--number sorting
--range filter
+allow setting custom id for headers
 lock/unlock
 pagination UI
 filter UI
@@ -283,6 +280,16 @@ Trillion.prototype.notifyListeners = function (view) {
     if (typeof this.listeners[i] === 'function') {
       this.listeners[i](view, headers, pageInfo, sortInfo);
     }
+  }
+};
+
+Trillion.prototype.getRows = function (query) {
+  if (query.field) {
+    return this.rows.map(row => {
+      return row[query.field];
+    });
+  } else {
+    throw Error('Lookups by non-field properties are not supported');
   }
 };
 
