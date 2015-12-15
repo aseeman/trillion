@@ -157,9 +157,9 @@ Trillion.prototype.compute = function () {
   const transform = t.compose.apply(null, stack);
   const rows = t.seq(this.data, transform);
 
-  this.sort();
-
   this.rows = rows;
+
+  this.sort();
 
   this.renderPage();
 };
