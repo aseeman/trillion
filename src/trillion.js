@@ -68,6 +68,7 @@ Trillion.prototype.initialize = function (input, indices, options) {
   this.sortConfig = null;
   this.currentPage = 1;
   this.totalPages = 1;
+  this.totalRows = 0;
 
   this.options.pageSize = clamp(options.pageSize, 1, 1000) || 100;
   this.options.lazy = !!options.lazy;
@@ -130,6 +131,8 @@ Trillion.prototype.initialize = function (input, indices, options) {
   }
 
   this.data = output;
+
+  this.totalRows = this.data.length;
   this.headers = tableIndices;
   this.compute();
 };
@@ -240,7 +243,8 @@ Trillion.prototype.getSortInfo = function () {
 Trillion.prototype.getPageInfo = function () {
   return {
     'currentPage': this.currentPage,
-    'totalPages': this.totalPages
+    'totalPages': this.totalPages,
+    'totalRows': this.totalRows
   };
 };
 
@@ -270,15 +274,20 @@ Trillion.prototype.renderPage = function () {
   this.notifyListeners(view);
 };
 
-Trillion.prototype.notifyListeners = function (view) {
+//todo: should cache last notification so new listeners don't need to regenerate the page
+Trillion.prototype.notifyListeners = function (view, listeners) {
   const headers = this.headers;
   //todo: this could be bundled into the view, since it's directly related
   const pageInfo = this.getPageInfo();
   const sortInfo = this.getSortInfo();
 
-  for(let i = 0, l = this.listeners.length; i < l; i++) {
-    if (typeof this.listeners[i] === 'function') {
-      this.listeners[i](view, headers, pageInfo, sortInfo);
+  if (!listeners) {
+    listeners = this.listeners;
+  }
+
+  for(let i = 0, l = listeners.length; i < l; i++) {
+    if (typeof listeners[i] === 'function') {
+      listeners[i](view, headers, pageInfo, sortInfo);
     }
   }
 };
@@ -312,7 +321,8 @@ Trillion.prototype.registerListener = function (listener) {
     if (this.listeners.length === 1 && this.options.lazy) {
       this.compute();
     } else if (this.listeners.length > 1) {
-      listener(this.rows, this.headers);
+      //todo: replace with a single-listener notification
+      this.renderPage();
     }
   }
 };

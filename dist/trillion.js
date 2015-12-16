@@ -91,10 +91,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/*
 
 	todo:
-	-invisible indices
-	-index types
-	-number sorting
-	-range filter
+	allow setting custom id for headers
 	lock/unlock
 	pagination UI
 	filter UI
@@ -154,6 +151,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  this.sortConfig = null;
 	  this.currentPage = 1;
 	  this.totalPages = 1;
+	  this.totalRows = 0;
 
 	  this.options.pageSize = clamp(options.pageSize, 1, 1000) || 100;
 	  this.options.lazy = !!options.lazy;
@@ -237,6 +235,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 
 	  this.data = output;
+
+	  this.totalRows = this.data.length;
 	  this.headers = tableIndices;
 	  this.compute();
 	};
@@ -347,7 +347,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	Trillion.prototype.getPageInfo = function () {
 	  return {
 	    'currentPage': this.currentPage,
-	    'totalPages': this.totalPages
+	    'totalPages': this.totalPages,
+	    'totalRows': this.totalRows
 	  };
 	};
 
@@ -377,16 +378,31 @@ return /******/ (function(modules) { // webpackBootstrap
 	  this.notifyListeners(view);
 	};
 
-	Trillion.prototype.notifyListeners = function (view) {
+	//todo: should cache last notification so new listeners don't need to regenerate the page
+	Trillion.prototype.notifyListeners = function (view, listeners) {
 	  var headers = this.headers;
 	  //todo: this could be bundled into the view, since it's directly related
 	  var pageInfo = this.getPageInfo();
 	  var sortInfo = this.getSortInfo();
 
-	  for (var i = 0, l = this.listeners.length; i < l; i++) {
-	    if (typeof this.listeners[i] === 'function') {
-	      this.listeners[i](view, headers, pageInfo, sortInfo);
+	  if (!listeners) {
+	    listeners = this.listeners;
+	  }
+
+	  for (var i = 0, l = listeners.length; i < l; i++) {
+	    if (typeof listeners[i] === 'function') {
+	      listeners[i](view, headers, pageInfo, sortInfo);
 	    }
+	  }
+	};
+
+	Trillion.prototype.getRows = function (query) {
+	  if (query.field) {
+	    return this.rows.map(function (row) {
+	      return row[query.field];
+	    });
+	  } else {
+	    throw Error('Lookups by non-field properties are not supported');
 	  }
 	};
 
@@ -409,7 +425,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (this.listeners.length === 1 && this.options.lazy) {
 	      this.compute();
 	    } else if (this.listeners.length > 1) {
-	      listener(this.rows, this.headers);
+	      //todo: replace with a single-listener notification
+	      this.renderPage();
 	    }
 	  }
 	};
