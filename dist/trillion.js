@@ -117,6 +117,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return Math.min(Math.max(value, min), max);
 	}
 
+	//todo: stop using this with paginate.call - need to figure out better mode of privacy
 	function paginate() {
 	  var startIndex = (this.currentPage - 1) * this.options.pageSize;
 	  var endIndex = Math.min(startIndex + this.options.pageSize, this.rows.length);
@@ -350,6 +351,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	    'totalPages': this.totalPages,
 	    'totalRows': this.totalRows
 	  };
+	};
+
+	Trillion.prototype.getPage = function (pageNumber) {
+	  if (!isNaN(pageNumber) && pageNumber > 0 && pageNumber <= this.totalPages) {
+	    this.currentPage = pageNumber;
+	    this.renderPage();
+	  } else {
+	    throw Error('Invalid page: ' + pageNumber);
+	  }
 	};
 
 	Trillion.prototype.getNextPage = function () {

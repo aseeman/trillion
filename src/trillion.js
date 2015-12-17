@@ -34,6 +34,7 @@ function clamp (value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
 
+//todo: stop using this with paginate.call - need to figure out better mode of privacy
 function paginate () {
   let startIndex = (this.currentPage - 1) * this.options.pageSize;
   let endIndex = Math.min(startIndex + this.options.pageSize, this.rows.length);
@@ -247,6 +248,15 @@ Trillion.prototype.getPageInfo = function () {
     'totalRows': this.totalRows
   };
 };
+
+Trillion.prototype.getPage = function (pageNumber) {
+  if (!isNaN(pageNumber) && pageNumber > 0 && pageNumber <= this.totalPages) {
+    this.currentPage = pageNumber;
+    this.renderPage();
+  } else {
+    throw Error('Invalid page: ' + pageNumber)
+  }
+}
 
 Trillion.prototype.getNextPage = function () {
   let currentPage = this.currentPage;
