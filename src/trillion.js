@@ -249,6 +249,11 @@ Trillion.prototype.getPageInfo = function () {
   };
 };
 
+Trillion.prototype.resetPagination = function () {
+  this.currentPage = 1;
+  this.renderPage();
+};
+
 Trillion.prototype.getPage = function (pageNumber) {
   if (!isNaN(pageNumber) && pageNumber > 0 && pageNumber <= this.totalPages) {
     this.currentPage = pageNumber;

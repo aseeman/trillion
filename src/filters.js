@@ -43,12 +43,14 @@ export default {
   },
 
   'addFilter': function (filter) {
+    this.resetPagination();
     if (!this.filters[filter._name]) {
       this.filters[filter._name] = filter;
     }
   },
 
   'removeFilter': function (filter) {
+    this.resetPagination();
     if (this.filters[filter._name]) {
       delete this.filters[filter._name];
     }

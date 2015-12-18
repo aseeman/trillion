@@ -353,6 +353,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  };
 	};
 
+	Trillion.prototype.resetPagination = function () {
+	  this.currentPage = 1;
+	  this.renderPage();
+	};
+
 	Trillion.prototype.getPage = function (pageNumber) {
 	  if (!isNaN(pageNumber) && pageNumber > 0 && pageNumber <= this.totalPages) {
 	    this.currentPage = pageNumber;
@@ -1541,12 +1546,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 
 	  'addFilter': function addFilter(filter) {
+	    this.resetPagination();
 	    if (!this.filters[filter._name]) {
 	      this.filters[filter._name] = filter;
 	    }
 	  },
 
 	  'removeFilter': function removeFilter(filter) {
+	    this.resetPagination();
 	    if (this.filters[filter._name]) {
 	      delete this.filters[filter._name];
 	    }
