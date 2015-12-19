@@ -63,8 +63,8 @@ assign(Trillion.prototype, Filters);
 Trillion.types = Types;
 
 Trillion.prototype.initialize = function (input, indices, options) {
-  this.filters = {};
   this.options = {};
+  this.filters = {};
   this.listeners = [];
   this.sortConfig = null;
   this.currentPage = 1;
@@ -240,6 +240,16 @@ Trillion.prototype.getSortInfo = function () {
     'ascending': this.sortConfig.ascending
   };
 };
+
+Trillion.prototype.setPageSize = function (size) {
+  //be reasonable
+  if (!isNaN(size) && size > 0 && size < 1000000) {
+    this.options.pageSize = size;
+    this.renderPage();
+  } else {
+    throw Error('Invalid page size: ' + size);
+  }
+}
 
 Trillion.prototype.getPageInfo = function () {
   return {
