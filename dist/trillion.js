@@ -349,6 +349,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  //be reasonable
 	  if (!isNaN(size) && size > 0 && size < 1000000) {
 	    this.options.pageSize = size;
+	    this.resetPagination();
 	    this.renderPage();
 	  } else {
 	    throw Error('Invalid page size: ' + size);
