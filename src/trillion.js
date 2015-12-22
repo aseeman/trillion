@@ -1,18 +1,16 @@
 /*
 
 todo:
+immutable.js integration
+remove display/raw distinction
+range filter
+get rid of filter names
+any filter
 allow setting custom id for headers
-lock/unlock
-pagination UI
-filter UI
-sorting UI
-search UI
 fuzzy search
 blank cells?
 custom filters?
 default sort direction per header
-possible crossfilter integration
-possible immutable.js integration
 tests
 readme
 eslint
@@ -368,6 +366,15 @@ Trillion.prototype.unregisterListener = function (listener) {
 
   this.listeners = listeners;
 };
+
+function Trillion2 (options) {
+  return (function TrillionEnv () {
+    const props = assign({}, options);
+    const state = {};
+
+    return {};
+  })();
+}
 
 export default Trillion;
 
