@@ -143,9 +143,13 @@ Trillion.prototype.compute = function () {
     return;
   }
 
+  const filters = this.filters.map(filter => {
+    return t.filter(filter);
+  });
+
   let stack = [];
 
-  stack = stack.concat(this.filters);
+  stack = stack.concat(filters);
 
   const transform = t.compose.apply(null, stack);
   const rows = t.seq(this.data, transform);

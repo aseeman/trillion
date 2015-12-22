@@ -79,7 +79,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _filters2 = _interopRequireDefault(_filters);
 
-	var _types = __webpack_require__(7);
+	var _types = __webpack_require__(5);
 
 	var _types2 = _interopRequireDefault(_types);
 
@@ -91,18 +91,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	/*
 
 	todo:
+	immutable.js integration
+	remove display/raw distinction
+	range filter
+	get rid of filter names
+	any filter
 	allow setting custom id for headers
-	lock/unlock
-	pagination UI
-	filter UI
-	sorting UI
-	search UI
 	fuzzy search
 	blank cells?
 	custom filters?
 	default sort direction per header
-	possible crossfilter integration
-	possible immutable.js integration
 	tests
 	readme
 	eslint
@@ -147,7 +145,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	Trillion.prototype.initialize = function (input, indices, options) {
 	  this.options = {};
-	  this.filters = {};
+	  this.filters = [];
 	  this.listeners = [];
 	  this.sortConfig = null;
 	  this.currentPage = 1;
@@ -249,15 +247,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return;
 	  }
 
+	  var filters = this.filters.map(function (filter) {
+	    return _transducers2.default.filter(filter);
+	  });
+
 	  var stack = [];
 
-	  var filters = this.filters;
-	  var filterNames = Object.keys(filters);
-
-	  for (var i = 0, l = filterNames.length; i < l; i++) {
-	    var filter = filters[filterNames[i]];
-	    stack.push(_transducers2.default.filter(filter));
-	  }
+	  stack = stack.concat(filters);
 
 	  var transform = _transducers2.default.compose.apply(null, stack);
 	  var rows = _transducers2.default.seq(this.data, transform);
@@ -472,6 +468,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  this.listeners = listeners;
 	};
+
+	function Trillion2(options) {
+	  return (function TrillionEnv() {
+	    var props = (0, _objectAssign2.default)({}, options);
+	    var state = {};
+
+	    return {};
+	  })();
+	}
 
 	exports.default = Trillion;
 
@@ -1497,24 +1502,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 4 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-
-	var _fuzzysearch = __webpack_require__(5);
-
-	var _fuzzysearch2 = _interopRequireDefault(_fuzzysearch);
-
-	var _damerauLevenshtein = __webpack_require__(6);
-
-	var _damerauLevenshtein2 = _interopRequireDefault(_damerauLevenshtein);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
 	function MatchFilter(haystack, needle) {
 	  return haystack.indexOf(needle) !== -1;
 	}
@@ -1531,47 +1525,76 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return a <= b;
 	}
 
+	function RangeFilter(value, min, max) {
+	  return value >= min && value <= max;
+	}
+
+	function AnyFilter(haystack, needle) {
+	  for (var i = 0, l = haystack.length; i < l; i++) {
+	    if (haystack[i] === needle) {
+	      return true;
+	    }
+	  }
+
+	  return false;
+	}
+
 	var filters = {
 	  'match': MatchFilter,
 	  'equal': EqualFilter,
 	  'min': MinFilter,
-	  'max': MaxFilter
+	  'max': MaxFilter,
+	  'range': RangeFilter,
+	  'any': AnyFilter
 	};
 
 	exports.default = {
-	  'createFilter': function createFilter(type, field, value) {
-	    var name = type + '-' + field + '-' + value;
+	  'createFilter': function createFilter(type, field) {
+	    for (var _len = arguments.length, args = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+	      args[_key - 2] = arguments[_key];
+	    }
+
 	    var fn = function fn() {
 	      return true;
 	    };
 
 	    if (filters[type]) {
 	      fn = function (data) {
-	        return filters[type](data[field].raw, value, [type, field]);
+	        //todo: remove .raw
+	        return filters[type].apply(filters, [data[field].raw].concat(args));
 	      };
 	    }
-
-	    fn._name = name;
 
 	    return fn;
 	  },
 
 	  'addFilter': function addFilter(filter) {
 	    this.resetPagination();
-	    if (!this.filters[filter._name]) {
-	      this.filters[filter._name] = filter;
+
+	    for (var i = 0, l = this.filters.length; i < l; i++) {
+	      if (this.filters[i] === filter) {
+	        return;
+	      }
 	    }
+
+	    this.filters.unshift(filter);
 	  },
 
 	  'removeFilter': function removeFilter(filter) {
 	    this.resetPagination();
-	    if (this.filters[filter._name]) {
-	      delete this.filters[filter._name];
-	    }
+
+	    this.filters = this.filters.filter(function (f) {
+	      return f !== filter;
+	    });
 	  },
 
 	  'toggleFilter': function toggleFilter(filter) {
-	    if (this.filters[filter._name]) {
+
+	    var foundFilter = this.filters.filter(function (f) {
+	      return f === filter;
+	    }).length > 0;
+
+	    if (foundFilter) {
 	      this.removeFilter(filter);
 	    } else {
 	      this.addFilter(filter);
@@ -1583,101 +1606,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 5 */
-/***/ function(module, exports) {
-
-	'use strict';
-
-	function fuzzysearch(needle, haystack) {
-	  var tlen = haystack.length;
-	  var qlen = needle.length;
-	  if (qlen > tlen) {
-	    return false;
-	  }
-	  if (qlen === tlen) {
-	    return needle === haystack;
-	  }
-	  outer: for (var i = 0, j = 0; i < qlen; i++) {
-	    var nch = needle.charCodeAt(i);
-	    while (j < tlen) {
-	      if (haystack.charCodeAt(j++) === nch) {
-	        continue outer;
-	      }
-	    }
-	    return false;
-	  }
-	  return true;
-	}
-
-	module.exports = fuzzysearch;
-
-/***/ },
-/* 6 */
-/***/ function(module, exports) {
-
-	"use strict";
-
-	// TheSpanishInquisition
-
-	// Cache the matrix. Note this implementation is limited to
-	// strings of 64 char or less. This could be altered to update
-	// dynamically, or a larger value could be used.
-
-	// TODO: grok it.
-	// The matrix was cached, as above comment states, but it was throwing unpredictable results sometimes. Either there was a bug or I was using it wrong. Now matrix is recreated on each call and results are correct. This probabily hits performance.
-
-	module.exports = function (__this, that, limit) {
-	  var matrix = [];
-	  for (var i = 0; i < 64; i++) {
-	    matrix[i] = [i];
-	    matrix[i].length = 64;
-	  }
-	  for (var i = 0; i < 64; i++) {
-	    matrix[0][i] = i;
-	  }
-
-	  var thisLength = __this.length,
-	      thatLength = that.length;
-
-	  var prepare = function prepare(steps) {
-	    var distance = {};
-	    distance.steps = steps;
-	    distance.relative = steps / Math.max(thisLength, thatLength);
-	    distance.similarity = 1 - distance.relative;
-
-	    return distance;
-	  };
-
-	  if (Math.abs(thisLength - thatLength) > (limit || 32)) return prepare(limit || 32);
-	  if (thisLength === 0) return prepare(thatLength);
-	  if (thatLength === 0) return prepare(thisLength);
-
-	  // Calculate matrix.
-	  var this_i, that_j, cost, min, t;
-	  for (var i = 1; i <= thisLength; ++i) {
-	    this_i = __this[i - 1];
-
-	    // Step 4
-	    for (var j = 1; j <= thatLength; ++j) {
-	      // Check the jagged ld total so far
-	      if (i === j && matrix[i][j] > 4) return prepare(thisLength);
-
-	      that_j = that[j - 1];
-	      cost = this_i === that_j ? 0 : 1; // Step 5
-	      // Calculate the minimum (much faster than Math.min(...)).
-	      min = matrix[i - 1][j] + 1; // Deletion.
-	      if ((t = matrix[i][j - 1] + 1) < min) min = t; // Insertion.
-	      if ((t = matrix[i - 1][j - 1] + cost) < min) min = t; // Substitution.
-
-	      // Update matrix.
-	      matrix[i][j] = i > 1 && j > 1 && this_i === that[j - 2] && __this[i - 2] === that_j && (t = matrix[i - 2][j - 2] + cost) < min ? t : min; // Transposition.
-	    }
-	  }
-
-	  return prepare(matrix[thisLength][thatLength]);
-	};
-
-/***/ },
-/* 7 */
 /***/ function(module, exports) {
 
 	'use strict';

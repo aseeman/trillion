@@ -46,7 +46,7 @@ export default {
     if (filters[type]) {
       fn = function (data) {
         //todo: remove .raw
-        return filters[type](data[field].raw || data[field], ...args)
+        return filters[type](data[field].raw, ...args);
       };
     }
 
