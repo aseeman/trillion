@@ -62,7 +62,7 @@ Trillion.types = Types;
 
 Trillion.prototype.initialize = function (input, indices, options) {
   this.options = {};
-  this.filters = {};
+  this.filters = [];
   this.listeners = [];
   this.sortConfig = null;
   this.currentPage = 1;
@@ -145,13 +145,7 @@ Trillion.prototype.compute = function () {
 
   let stack = [];
 
-  const filters = this.filters;
-  const filterNames = Object.keys(filters);
-
-  for(let i = 0, l = filterNames.length; i < l; i++) {
-    const filter = filters[filterNames[i]];
-    stack.push(t.filter(filter));
-  }
+  stack = stack.concat(this.filters);
 
   const transform = t.compose.apply(null, stack);
   const rows = t.seq(this.data, transform);

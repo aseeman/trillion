@@ -38,39 +38,48 @@ const filters = {
 };
 
 export default {
-  'createFilter': function (type, field, value) {
-    const name = `${type}-${field}-${value}`;
+  'createFilter': function (type, field, ...args) {
     let fn = function () {
       return true;
     };
 
     if (filters[type]) {
       fn = function (data) {
-        return filters[type](data[field].raw, value, [type, field])
+        //todo: remove .raw
+        return filters[type](data[field].raw || data[field], ...args)
       };
     }
-
-    fn._name = name;
 
     return fn;
   },
 
   'addFilter': function (filter) {
     this.resetPagination();
-    if (!this.filters[filter._name]) {
-      this.filters[filter._name] = filter;
+
+    for(let i = 0, l = this.filters.length; i < l; i++) {
+      if (this.filters[i] === filter) {
+        return;
+      }
     }
+
+    this.filters.unshift(filter);
   },
 
   'removeFilter': function (filter) {
     this.resetPagination();
-    if (this.filters[filter._name]) {
-      delete this.filters[filter._name];
-    }
+
+    this.filters = this.filters.filter(f => {
+      return f !== filter;
+    });
   },
 
   'toggleFilter': function (filter) {
-    if (this.filters[filter._name]) {
+
+    const foundFilter = this.filters.filter(f => {
+      return f === filter;
+    }).length > 0;
+
+    if (foundFilter) {
       this.removeFilter(filter);
     } else {
       this.addFilter(filter);
