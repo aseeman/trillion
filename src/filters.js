@@ -1,6 +1,3 @@
-import fuzzysearch from 'fuzzysearch';
-import damerau from './vendor/damerau-levenshtein';
-
 function MatchFilter (haystack, needle) {
   return haystack.indexOf(needle) !== -1;
 }
@@ -17,11 +14,27 @@ function MaxFilter (a, b) {
   return a <= b;
 }
 
+function RangeFilter (value, min, max) {
+  return value >= min && value <= max;
+}
+
+function AnyFilter (haystack, needle) {
+  for(let i = 0, l = haystack.length; i < l; i++) {
+    if (haystack[i] === needle) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 const filters = {
   'match': MatchFilter,
   'equal': EqualFilter,
   'min': MinFilter,
-  'max': MaxFilter
+  'max': MaxFilter,
+  'range': RangeFilter,
+  'any': AnyFilter
 };
 
 export default {
