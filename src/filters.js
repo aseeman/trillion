@@ -31,11 +31,15 @@ function AnyFilter (haystack, needle) {
 //ported from DataTables
 function SmartFilter (haystack, needle) {
   const wordRegex = /"[^"]+"|[^ ]+/g;
-  const words = search.match(wordRegex).map(word => {
+  const words = needle.match(wordRegex).map(word => {
     return word.replace(/\"/g, '');
   });
 
-  const smartRegex = '^(?=.*?' + words.join(')(?=.*?') + ').*$';
+  const smartRegexSource = '^(?=.*?' + words.join(')(?=.*?') + ').*$';
+  const smartRegex = new RegExp(smartRegexSource, 'i');
+
+  const match = haystack.match(smartRegex);
+  return match;
 }
 
 const filters = {
@@ -44,7 +48,8 @@ const filters = {
   'min': MinFilter,
   'max': MaxFilter,
   'range': RangeFilter,
-  'any': AnyFilter
+  'any': AnyFilter,
+  'smart': SmartFilter
 };
 
 export default {

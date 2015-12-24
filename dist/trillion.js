@@ -1539,13 +1539,28 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return false;
 	}
 
+	//ported from DataTables
+	function SmartFilter(haystack, needle) {
+	  var wordRegex = /"[^"]+"|[^ ]+/g;
+	  var words = needle.match(wordRegex).map(function (word) {
+	    return word.replace(/\"/g, '');
+	  });
+
+	  var smartRegexSource = '^(?=.*?' + words.join(')(?=.*?') + ').*$';
+	  var smartRegex = new RegExp(smartRegexSource, 'i');
+
+	  var match = haystack.match(smartRegex);
+	  return match;
+	}
+
 	var filters = {
 	  'match': MatchFilter,
 	  'equal': EqualFilter,
 	  'min': MinFilter,
 	  'max': MaxFilter,
 	  'range': RangeFilter,
-	  'any': AnyFilter
+	  'any': AnyFilter,
+	  'smart': SmartFilter
 	};
 
 	exports.default = {
