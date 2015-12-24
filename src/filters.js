@@ -28,6 +28,16 @@ function AnyFilter (haystack, needle) {
   return false;
 }
 
+//ported from DataTables
+function SmartFilter (haystack, needle) {
+  const wordRegex = /"[^"]+"|[^ ]+/g;
+  const words = search.match(wordRegex).map(word => {
+    return word.replace(/\"/g, '');
+  });
+
+  const smartRegex = '^(?=.*?' + words.join(')(?=.*?') + ').*$';
+}
+
 const filters = {
   'match': MatchFilter,
   'equal': EqualFilter,
