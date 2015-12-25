@@ -92,10 +92,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	todo:
 	immutable.js integration
+	additive filter application
 	remove display/raw distinction
-	range filter
+	-range filter
 	get rid of filter names
-	any filter
+	-any filter
 	allow setting custom id for headers
 	fuzzy search
 	blank cells?
@@ -117,6 +118,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	//todo: stop using this with paginate.call - need to figure out better mode of privacy
 	function paginate() {
+	  if (!this.rows) return;
+
 	  var startIndex = (this.currentPage - 1) * this.options.pageSize;
 	  var endIndex = Math.min(startIndex + this.options.pageSize, this.rows.length);
 	  var view = [];
