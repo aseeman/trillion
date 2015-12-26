@@ -101,7 +101,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	fuzzy search
 	blank cells?
 	custom filters?
-	default sort direction per header
+	-default sort direction per header
 	tests
 	readme
 	eslint
@@ -170,7 +170,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      'label': index.label,
 	      'type': index.type,
 	      'id': uuid(),
-	      'sort': index.type && _types2.default[index.type] ? _types2.default[index.type].sort : null
+	      'sort': index.type && _types2.default[index.type] ? _types2.default[index.type].sort : null,
+	      'defaultSortDescending': index.defaultSortDescending
 	    };
 	  });
 
@@ -323,9 +324,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  if (this.sortConfig && header === this.sortConfig.header) {
 	    this.sortConfig.ascending = !this.sortConfig.ascending;
 	  } else {
+	    var defaultSortDescending = header.defaultSortDescending === true;
+
 	    this.sortConfig = {
 	      'header': header,
-	      'ascending': true
+	      'ascending': defaultSortDescending ? false : true
 	    };
 	  }
 

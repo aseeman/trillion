@@ -11,7 +11,7 @@ allow setting custom id for headers
 fuzzy search
 blank cells?
 custom filters?
-default sort direction per header
+-default sort direction per header
 tests
 readme
 eslint
@@ -87,7 +87,8 @@ Trillion.prototype.initialize = function (input, indices, options) {
       'label': index.label,
       'type': index.type,
       'id': uuid(),
-      'sort': (index.type && Types[index.type]) ? Types[index.type].sort : null
+      'sort': (index.type && Types[index.type]) ? Types[index.type].sort : null,
+      'defaultSortDescending': index.defaultSortDescending
     };
   });
 
@@ -218,10 +219,12 @@ Trillion.prototype.sortByHeader = function (headerId) {
 
   if (this.sortConfig && header === this.sortConfig.header) {
     this.sortConfig.ascending = !this.sortConfig.ascending;
-  } else{
+  } else {
+    const defaultSortDescending = header.defaultSortDescending === true;
+
     this.sortConfig = {
       'header': header,
-      'ascending': true
+      'ascending': defaultSortDescending ? false : true
     };
   }
 
