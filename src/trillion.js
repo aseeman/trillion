@@ -37,6 +37,10 @@ function clamp (value, min, max) {
 function paginate () {
   if (!this.rows) return;
 
+  if (this.options.pageSize === 0) {
+    return this.rows;
+  }
+
   let startIndex = (this.currentPage - 1) * this.options.pageSize;
   let endIndex = Math.min(startIndex + this.options.pageSize, this.rows.length);
   let view = [];
@@ -72,7 +76,7 @@ Trillion.prototype.initialize = function (input, indices, options) {
   this.totalPages = 1;
   this.totalRows = 0;
 
-  this.options.pageSize = clamp(options.pageSize, 1, 1000) || 100;
+  this.options.pageSize = options.pageSize === 0 ? 0 : (clamp(options.pageSize, 1, 1000) || 100);
   this.options.lazy = !!options.lazy;
   this.options.types = options.types;
 
@@ -320,6 +324,7 @@ Trillion.prototype.notifyListeners = function (view, listeners) {
   }
 };
 
+//todo: replace with aggregations
 Trillion.prototype.getRows = function (query) {
   if (query.field) {
     return this.rows.map(row => {
@@ -327,6 +332,23 @@ Trillion.prototype.getRows = function (query) {
     });
   } else {
     throw Error('Lookups by non-field properties are not supported');
+  }
+};
+
+//todo: replace with aggregations
+Trillion.prototype.findRows = function (query) {
+  if (query.field && query.values) {
+    return this.rows.filter(row => {
+      return query.values.indexOf(row[query.field].raw) !== -1;
+    }).map(row => {
+      const ret = {};
+      this.headers.forEach(header => {
+        ret[header.field] = row[header.field].display;
+      });
+      return ret;
+    });
+  } else {
+    throw Error('Lookups without a field and values are not supported');
   }
 };
 

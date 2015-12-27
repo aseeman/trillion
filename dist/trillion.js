@@ -120,6 +120,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	function paginate() {
 	  if (!this.rows) return;
 
+	  if (this.options.pageSize === 0) {
+	    return this.rows;
+	  }
+
 	  var startIndex = (this.currentPage - 1) * this.options.pageSize;
 	  var endIndex = Math.min(startIndex + this.options.pageSize, this.rows.length);
 	  var view = [];
@@ -155,7 +159,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  this.totalPages = 1;
 	  this.totalRows = 0;
 
-	  this.options.pageSize = clamp(options.pageSize, 1, 1000) || 100;
+	  this.options.pageSize = options.pageSize === 0 ? 0 : clamp(options.pageSize, 1, 1000) || 100;
 	  this.options.lazy = !!options.lazy;
 	  this.options.types = options.types;
 
@@ -424,6 +428,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	};
 
+	//todo: replace with aggregations
 	Trillion.prototype.getRows = function (query) {
 	  if (query.field) {
 	    return this.rows.map(function (row) {
@@ -431,6 +436,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	    });
 	  } else {
 	    throw Error('Lookups by non-field properties are not supported');
+	  }
+	};
+
+	//todo: replace with aggregations
+	Trillion.prototype.findRows = function (query) {
+	  var _this = this;
+
+	  if (query.field && query.values) {
+	    return this.rows.filter(function (row) {
+	      return query.values.indexOf(row[query.field].raw) !== -1;
+	    }).map(function (row) {
+	      var ret = {};
+	      _this.headers.forEach(function (header) {
+	        ret[header.field] = row[header.field].display;
+	      });
+	      return ret;
+	    });
+	  } else {
+	    throw Error('Lookups without a field and values are not supported');
 	  }
 	};
 
