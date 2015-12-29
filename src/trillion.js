@@ -333,6 +333,19 @@ Trillion.prototype.getRows = function (query) {
 };
 
 //todo: replace with aggregations
+Trillion.prototype.getPageRows = function (query) {
+  var view = paginate.call(this);
+
+  if (query.field) {
+    return view.map(row => {
+      return row[query.field];
+    });
+  } else {
+    throw Error('Lookups by non-field properties are not supported')
+  }
+};
+
+//todo: replace with aggregations
 Trillion.prototype.findRows = function (query) {
   if (query.field && query.values) {
     return this.rows.filter(row => {

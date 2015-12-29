@@ -94,14 +94,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	immutable.js integration
 	additive filter application
 	remove display/raw distinction
-	-range filter
 	get rid of filter names
-	-any filter
 	allow setting custom id for headers
 	fuzzy search
 	blank cells?
 	custom filters?
-	-default sort direction per header
 	tests
 	readme
 	eslint
@@ -432,6 +429,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	Trillion.prototype.getRows = function (query) {
 	  if (query.field) {
 	    return this.rows.map(function (row) {
+	      return row[query.field];
+	    });
+	  } else {
+	    throw Error('Lookups by non-field properties are not supported');
+	  }
+	};
+
+	//todo: replace with aggregations
+	Trillion.prototype.getPageRows = function (query) {
+	  var view = paginate.call(this);
+
+	  if (query.field) {
+	    return view.map(function (row) {
 	      return row[query.field];
 	    });
 	  } else {
@@ -1539,7 +1549,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	function MatchFilter(haystack, needle) {
+	function MatchFilter(needle, haystack) {
 	  return haystack.indexOf(needle) !== -1;
 	}
 
@@ -1559,7 +1569,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return value >= min && value <= max;
 	}
 
-	function AnyFilter(haystack, needle) {
+	function AnyFilter(needle, haystack) {
 	  for (var i = 0, l = haystack.length; i < l; i++) {
 	    if (haystack[i] === needle) {
 	      return true;
@@ -1571,6 +1581,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	//ported from DataTables
 	function SmartFilter(haystack, needle) {
+	  //todo: this matches exact indexOf matches poorly, hence this early bailout
+	  if (haystack.indexOf('needle') !== -1) {
+	    return true;
+	  }
+
 	  var wordRegex = /"[^"]+"|[^ ]+/g;
 	  var words = needle.match(wordRegex).map(function (word) {
 	    return word.replace(/\"/g, '');
