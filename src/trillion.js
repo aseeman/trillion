@@ -4,14 +4,11 @@ todo:
 immutable.js integration
 additive filter application
 remove display/raw distinction
--range filter
 get rid of filter names
--any filter
 allow setting custom id for headers
 fuzzy search
 blank cells?
 custom filters?
--default sort direction per header
 tests
 readme
 eslint
