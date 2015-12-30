@@ -1,4 +1,4 @@
-function MatchFilter (haystack, needle) {
+function MatchFilter (needle, haystack) {
   return haystack.indexOf(needle) !== -1;
 }
 
@@ -18,7 +18,7 @@ function RangeFilter (value, min, max) {
   return value >= min && value <= max;
 }
 
-function AnyFilter (haystack, needle) {
+function AnyFilter (needle, haystack) {
   for(let i = 0, l = haystack.length; i < l; i++) {
     if (haystack[i] === needle) {
       return true;
@@ -30,6 +30,11 @@ function AnyFilter (haystack, needle) {
 
 //ported from DataTables
 function SmartFilter (haystack, needle) {
+  //todo: this matches exact indexOf matches poorly, hence this early bailout
+  if (haystack.indexOf('needle') !== -1) {
+    return true;
+  }
+
   const wordRegex = /"[^"]+"|[^ ]+/g;
   const words = needle.match(wordRegex).map(word => {
     return word.replace(/\"/g, '');
