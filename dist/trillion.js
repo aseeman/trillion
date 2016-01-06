@@ -363,7 +363,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return {
 	    'currentPage': this.currentPage,
 	    'totalPages': this.totalPages,
-	    'totalRows': this.totalRows
+	    'totalRows': this.totalRows,
+	    'currentRows': this.rows !== undefined ? this.rows.length : 0,
+	    'pageSize': this.options.pageSize
 	  };
 	};
 
